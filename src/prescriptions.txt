@@ -1,0 +1,8 @@
+Prescription ID: dfg
+Patient ID: sef
+Medication: se
+Dosage: d
+Pharmacy: we
+Status: Created
+
+-----------------
