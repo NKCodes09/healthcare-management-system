@@ -1,4 +1,4 @@
-nhsNumber,firstName,lastName,dateOfBirth,phoneNumber,gender, registeredGpSurgery
+nhsNumber,firstName,lastName,dateOfBirth,phoneNumber,gender,registeredGpSurgery
 P001,John,Smith,1985-03-15,1234567890,M,Conway Medical Centre
 P002,Emma,Johnson,1990-07-22,2345678901,F, Kingsway Health Centre
 P003,Robert,Williams,1975-11-08,3456789012,M, Blenheim Surgery

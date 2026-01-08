@@ -15,96 +15,88 @@ public class PatientPanel extends JPanel {
 
     public PatientPanel() {
 
-        setLayout(new BorderLayout());
+    setLayout(new BorderLayout());
+    repository = new PatientRepository();
 
-        repository = new PatientRepository();
+    model = new DefaultTableModel(
+            new String[]{
+                    "NHS Number",
+                    "First Name",
+                    "Last Name",
+                    "DOB",
+                    "Phone",
+                    "Gender",
+                    "GP Surgery"
+            }, 0
+    );
 
-        model = new DefaultTableModel(
-                new String[] {
-                        "NHS Number",
-                        "First Name",
-                        "Last Name",
-                        "DOB",
-                        "Phone",
-                        "Gender",
-                        "GP Surgery"
-                }, 0);
+    table = new JTable(model);
+    add(new JScrollPane(table), BorderLayout.CENTER);
 
-        table = new JTable(model);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+    JButton add = new JButton("Add");
+    JButton delete = new JButton("Delete");
 
-        JButton add = new JButton("Add");
-        JButton delete = new JButton("Delete");
+    add.addActionListener(e -> addPatient());
+    delete.addActionListener(e -> deletePatient());
 
-        add.addActionListener(e -> addPatient());
-        delete.addActionListener(e -> deletePatient());
+    JPanel buttons = new JPanel();
+    buttons.add(add);
+    buttons.add(delete);
+    add(buttons, BorderLayout.SOUTH);
 
-        JPanel buttons = new JPanel();
-        buttons.add(add);
-        buttons.add(delete);
+    // ✅ THIS IS CRITICAL
+    loadPatients();
+}
 
-        add(buttons, BorderLayout.SOUTH);
+private void loadPatients() {
+    model.setRowCount(0);
 
-        loadPatients();
+    for (Patient p : repository.getAll()) {
+        model.addRow(new Object[] {
+                p.getNhsNumber(),
+                p.getFirstName(),
+                p.getLastName(),
+                p.getDateOfBirth(),
+                p.getPhoneNumber(),
+                p.getGender(),
+                p.getRegisteredGpSurgery()
+        });
     }
+}
 
-    private void loadPatients() {
-        try {
-            repository.load("data/patients.csv");
-
-            model.setRowCount(0);
-
-            for (Patient p : repository.getAll()) {
-                model.addRow(new Object[] {
-                        p.getNhsNumber(),
-                        p.getFirstName(),
-                        p.getLastName(),
-                        p.getDateOfBirth(),
-                        p.getPhoneNumber(),
-                        p.getGender(),
-                        p.getRegisteredGpSurgery()
-                });
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Failed to load patients file:\n" + e.getMessage(),
-                    "File Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
 
     private void addPatient() {
-        try {
-            String nhs = JOptionPane.showInputDialog(this, "NHS Number");
-            if (nhs == null || nhs.isEmpty())
-                return;
+    try {
 
-            Patient p = new Patient(
-                    nhs,
-                    JOptionPane.showInputDialog(this, "First Name"),
-                    JOptionPane.showInputDialog(this, "Last Name"),
-                    JOptionPane.showInputDialog(this, "DOB"),
-                    JOptionPane.showInputDialog(this, "Phone"),
-                    JOptionPane.showInputDialog(this, "Gender"),
-                    JOptionPane.showInputDialog(this, "GP Surgery"));
+        String nhs = JOptionPane.showInputDialog(this, "NHS Number");
+        if (nhs == null || nhs.trim().isEmpty())
+            return;
 
-            repository.addPatient(p);
-            loadPatients();
+        Patient p = new Patient(
+                nhs,
+                JOptionPane.showInputDialog(this, "First Name"),
+                JOptionPane.showInputDialog(this, "Last Name"),
+                JOptionPane.showInputDialog(this, "DOB"),
+                JOptionPane.showInputDialog(this, "Phone"),
+                JOptionPane.showInputDialog(this, "Gender"),
+                JOptionPane.showInputDialog(this, "GP Surgery"));
 
-            JOptionPane.showMessageDialog(this, "Patient added successfully.");
+        repository.addPatient(p); // ✅ writes to CSV
+        loadPatients(); // ✅ reloads table from CSV
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Failed to add patient:\n" + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        }
+        JOptionPane.showMessageDialog(this, "Patient added successfully.");
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(
+                this,
+                "Failed to add patient:\n" + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
+}
 
     private void deletePatient() {
+        
         int row = table.getSelectedRow();
         if (row == -1) {
             JOptionPane.showMessageDialog(this, "Please select a patient first.");
