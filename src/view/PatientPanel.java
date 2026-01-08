@@ -12,40 +12,60 @@ public class PatientPanel extends JPanel {
     private final PatientRepository repository;
     private final JTable table;
     private final DefaultTableModel model;
+    private JPanel buttons;
 
     public PatientPanel() {
 
-    setLayout(new BorderLayout());
-    repository = new PatientRepository();
+        setLayout(new BorderLayout());
+        repository = new PatientRepository();
 
-    model = new DefaultTableModel(
-            new String[]{
-                    "NHS Number",
-                    "First Name",
-                    "Last Name",
-                    "DOB",
-                    "Phone",
-                    "Gender",
-                    "GP Surgery"
-            }, 0
-    );
+        model = new DefaultTableModel(
+                new String[] { "NHS Number", "First Name", "Last Name", "DOB", "Phone", "Gender", "GP Surgery" }, 0);
 
-    table = new JTable(model);
-    add(new JScrollPane(table), BorderLayout.CENTER);
+        table = new JTable(model);
+        add(new JScrollPane(table), BorderLayout.CENTER);
 
-    JButton add = new JButton("Add");
-    JButton delete = new JButton("Delete");
+        JButton add = new JButton("Add");
+        JButton delete = new JButton("Delete");
+        JButton edit = new JButton("Edit");
 
-    add.addActionListener(e -> addPatient());
-    delete.addActionListener(e -> deletePatient());
+        add.addActionListener(e -> addPatient());
+        delete.addActionListener(e -> deletePatient());
+        edit.addActionListener(e -> editPatient());
 
-    JPanel buttons = new JPanel();
-    buttons.add(add);
-    buttons.add(delete);
-    add(buttons, BorderLayout.SOUTH);
+        buttons = new JPanel(); // ✅ class-level
+        buttons.add(add);
+        buttons.add(delete);
+        buttons.add(edit);
 
-    // ✅ THIS IS CRITICAL
-    loadPatients();
+        add(buttons, BorderLayout.SOUTH);
+
+        loadPatients();
+    }
+
+private void editPatient() {
+    int row = table.getSelectedRow();
+    if (row == -1)
+        return;
+
+    try {
+        String nhs = model.getValueAt(row, 0).toString();
+
+        Patient updated = new Patient(
+                nhs,
+                JOptionPane.showInputDialog(this, "First Name", model.getValueAt(row, 1)),
+                JOptionPane.showInputDialog(this, "Last Name", model.getValueAt(row, 2)),
+                JOptionPane.showInputDialog(this, "DOB", model.getValueAt(row, 3)),
+                JOptionPane.showInputDialog(this, "Phone", model.getValueAt(row, 4)),
+                JOptionPane.showInputDialog(this, "Gender", model.getValueAt(row, 5)),
+                JOptionPane.showInputDialog(this, "GP Surgery", model.getValueAt(row, 6)));
+
+        repository.updatePatient(updated);
+        loadPatients();
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, e.getMessage());
+    }
 }
 
 private void loadPatients() {

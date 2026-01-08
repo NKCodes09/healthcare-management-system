@@ -2,35 +2,19 @@ package repository;
 
 import model.Referral;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
-/**
- * ReferralManager (Singleton)
- * ---------------------------
- * Handles processing of referrals and generation
- * of referral output text files.
- *
- * This class enforces a SINGLE instance (Singleton pattern),
- * satisfying the design pattern requirement in the rubric.
- */
 public class ReferralManager {
 
-    /** Singleton instance */
     private static ReferralManager instance;
 
-    /** Output directory for referral text files */
-    private static final String OUTPUT_DIR = "output/referrals";
+    private ReferralManager() {
+        // private constructor
+    }
 
-    /** Private constructor (Singleton) */
-    private ReferralManager() {}
-
-    /**
-     * Returns the single ReferralManager instance.
-     */
-    public static ReferralManager getInstance() {
+    public static synchronized ReferralManager getInstance() {
         if (instance == null) {
             instance = new ReferralManager();
         }
@@ -38,64 +22,45 @@ public class ReferralManager {
     }
 
     /**
-     * Processes a referral by generating a referral output text file.
+     * Processes referral using Singleton:
+     * - Writes readable referral text file
+     * - Does NOT send real email (per assignment)
      */
-    public void processReferral(Referral referral) throws IOException {
-
-        if (referral == null) {
-            throw new IllegalArgumentException("Referral cannot be null");
-        }
-
-        generateReferralTextFile(referral);
+    public void processReferral(Referral r) throws IOException {
+        writeReferralTextFile(r);
     }
 
-    /**
-     * Generates a referral text file.
-     *
-     * Example:
-     * output/referrals/referral_R001.txt
-     */
-    private void generateReferralTextFile(Referral referral) throws IOException {
+    private void writeReferralTextFile(Referral r) throws IOException {
 
-        File dir = new File(OUTPUT_DIR);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
+        String fileName = "referral_" + r.getReferralId() + ".txt";
 
-        String filename = OUTPUT_DIR + "/referral_" + referral.getReferralId() + ".txt";
+        try (FileWriter writer = new FileWriter(fileName)) {
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("=== REFERRAL DOCUMENT ===\n");
+            writer.write("Generated: " + LocalDateTime.now() + "\n\n");
 
-            writer.write("REFERRAL NOTICE");
-            writer.newLine();
-            writer.write("--------------------------------");
-            writer.newLine();
+            writer.write("Referral ID: " + r.getReferralId() + "\n");
+            writer.write("Patient NHS Number: " + r.getPatientNhsNumber() + "\n");
+            writer.write("Referring Clinician ID: " + r.getReferringClinicianId() + "\n");
+            writer.write("From Facility: " + r.getFromFacilityId() + "\n");
+            writer.write("To Facility: " + r.getToFacilityId() + "\n\n");
 
-            writer.write("Referral ID: " + referral.getReferralId());
-            writer.newLine();
+            writer.write("Urgency Level: " + r.getUrgencyLevel() + "\n");
+            writer.write("Referral Date: " + r.getReferralDate() + "\n\n");
 
-            writer.write("Patient NHS Number: " + referral.getPatientNhsNumber());
-            writer.newLine();
+            writer.write("Reason for Referral:\n");
+            writer.write(r.getReferralReason() + "\n\n");
 
-            writer.write("Referring Clinician ID: " + referral.getReferringClinicianId());
-            writer.newLine();
+            writer.write("Clinical Summary:\n");
+            writer.write(r.getClinicalSummary() + "\n\n");
 
-            writer.write("From Facility: " + referral.getFromFacilityId());
-            writer.newLine();
+            writer.write("Requested Investigations:\n");
+            writer.write(r.getRequestedInvestigations() + "\n\n");
 
-            writer.write("To Facility: " + referral.getToFacilityId());
-            writer.newLine();
+            writer.write("Status: " + r.getStatus() + "\n");
+            writer.write("Notes: " + r.getNotes() + "\n");
 
-            writer.write("Urgency Level: " + referral.getUrgencyLevel());
-            writer.newLine();
-
-            writer.write("Referral Date: " + referral.getReferralDate());
-            writer.newLine();
-
-            writer.newLine();
-            writer.write("Clinical Summary:");
-            writer.newLine();
-            writer.write(referral.getClinicalSummary());
+            writer.write("\n=== END OF REFERRAL ===\n");
         }
     }
 }

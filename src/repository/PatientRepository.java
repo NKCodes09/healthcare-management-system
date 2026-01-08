@@ -41,6 +41,18 @@ public class PatientRepository {
         patients.add(p);
         writeAll(); // ✅ writes using fixed CSV path
     }
+    
+    public void updatePatient(Patient updated) throws IOException {
+
+        for (int i = 0; i < patients.size(); i++) {
+            if (patients.get(i).getNhsNumber().equals(updated.getNhsNumber())) {
+                patients.set(i, updated);
+                break;
+            }
+        }
+
+        writeAll(); // reuse existing CSV writer
+    }
 
     public void deletePatient(String nhs) throws IOException {
         patients.removeIf(p -> p.getNhsNumber().equals(nhs));

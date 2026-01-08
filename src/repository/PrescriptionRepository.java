@@ -59,10 +59,50 @@ public class PrescriptionRepository {
     public List<Prescription> getAll() {
         return prescriptions;
     }
+    
+    private void writePrescriptionText(Prescription p) throws IOException {
 
-    public void addPrescription(Prescription prescription) throws IOException {
-        prescriptions.add(prescription);
-        save("data/prescriptions.csv");
+        String fileName = "prescription_" + p.getPrescriptionId() + ".txt";
+
+        try (FileWriter writer = new FileWriter(fileName)) {
+
+            writer.write("=== PRESCRIPTION ===\n\n");
+            writer.write("Prescription ID: " + p.getPrescriptionId() + "\n");
+            writer.write("Patient NHS Number: " + p.getPatientNhsNumber() + "\n");
+            writer.write("Clinician ID: " + p.getClinicianId() + "\n\n");
+
+            writer.write("Medication: " + p.getMedication() + "\n");
+            writer.write("Dosage: " + p.getDosage() + "\n");
+            writer.write("Pharmacy: " + p.getPharmacy() + "\n");
+            writer.write("Collection Status: " + p.getCollectionStatus() + "\n\n");
+
+            writer.write("=== END OF PRESCRIPTION ===\n");
+        }
+    }
+
+    private void writeAll() throws IOException {
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter("data/prescriptions.csv"))) {
+
+            pw.println("prescriptionId,patientNhsNumber,clinicianId,medication,dosage,pharmacy,collectionStatus");
+
+            for (Prescription p : prescriptions) {
+                pw.println(String.join(",",
+                        p.getPrescriptionId(),
+                        p.getPatientNhsNumber(),
+                        p.getClinicianId(),
+                        p.getMedication(),
+                        p.getDosage(),
+                        p.getPharmacy(),
+                        p.getCollectionStatus()));
+            }
+        }
+    }
+
+    public void addPrescription(Prescription p) throws IOException {
+        prescriptions.add(p);
+        writeAll(); // CSV
+        writePrescriptionText(p); // TXT
     }
 
     public void updatePrescription(Prescription updated) throws IOException {
