@@ -2,34 +2,168 @@ package repository;
 
 import model.Clinician;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ClinicianRepository
+ * -------------------
+ * Handles loading, storing, editing, and deleting clinicians.
+ *
+ * MODEL layer (MVC).
+ */
 public class ClinicianRepository {
 
-    private List<Clinician> clinicians = new ArrayList<>();
+    /** In-memory list */
+    private final List<Clinician> clinicians = new ArrayList<>();
 
-    public void loadClinicians(String filePath) {
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            br.readLine();
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                clinicians.add(new Clinician(
-                        data[0],
-                        data[1],
-                        data[2],
-                        data[3],
-                        data[4]));
+    /** CSV source path */
+    private String sourceFilePath;
+
+    /* =====================================================
+       LOAD
+       ===================================================== */
+
+public void load(String filePath) throws IOException {
+
+    this.sourceFilePath = filePath;
+    clinicians.clear();
+
+    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+
+        // Skip header
+        br.readLine();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+
+            String[] cols = line.split(",", -1);
+            if (cols.length < 6) continue;
+
+            // CSV structure:
+            // 0 = clinicianId
+            // 1 = firstName
+            // 2 = lastName
+            // 3 = role
+            // 4 = specialty
+            // 5 = workplace
+
+            String fullName = cols[1].trim() + " " + cols[2].trim();
+
+            Clinician clinician = new Clinician(
+                    cols[0].trim(),      // clinicianId
+                    fullName,            // name (combined)
+                    cols[3].trim(),      // role
+                    cols[4].trim(),      // specialty
+                    cols[5].trim()       // workplace
+            );
+
+            clinicians.add(clinician);
+        }
+    }
+}
+
+
+    /* =====================================================
+       READ
+       ===================================================== */
+
+    public List<Clinician> getAll() {
+        return new ArrayList<>(clinicians);
+    }
+
+    public Clinician findById(String clinicianId) {
+        for (Clinician c : clinicians) {
+            if (c.getClinicianId().equalsIgnoreCase(clinicianId)) {
+                return c;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /* =====================================================
+       CREATE
+       ===================================================== */
+
+    public void add(Clinician clinician) throws IOException {
+
+        if (clinician == null || clinician.getClinicianId().isBlank()) {
+            throw new IllegalArgumentException("Clinician ID is required.");
+        }
+
+        if (findById(clinician.getClinicianId()) != null) {
+            throw new IllegalArgumentException("Clinician ID already exists.");
+        }
+
+        clinicians.add(clinician);
+        saveToCsv();
+    }
+
+    /* =====================================================
+       UPDATE
+       ===================================================== */
+
+    public void update(Clinician updated) throws IOException {
+
+        for (int i = 0; i < clinicians.size(); i++) {
+            if (clinicians.get(i).getClinicianId()
+                    .equalsIgnoreCase(updated.getClinicianId())) {
+
+                clinicians.set(i, updated);
+                saveToCsv();
+                return;
+            }
+        }
+
+        throw new IllegalArgumentException("Clinician not found.");
+    }
+
+    /* =====================================================
+       DELETE
+       ===================================================== */
+
+    public void delete(String clinicianId) throws IOException {
+
+        boolean removed = clinicians.removeIf(c ->
+                c.getClinicianId().equalsIgnoreCase(clinicianId));
+
+        if (!removed) {
+            throw new IllegalArgumentException("Clinician not found.");
+        }
+
+        saveToCsv();
+    }
+
+    /* =====================================================
+       CSV SAVE
+       ===================================================== */
+
+    private void saveToCsv() throws IOException {
+
+        if (sourceFilePath == null) {
+            throw new IllegalStateException("CSV path not set. Call load() first.");
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(sourceFilePath))) {
+
+            writer.write("clinicianId,name,role,specialty,workplace");
+            writer.newLine();
+
+            for (Clinician c : clinicians) {
+                writer.write(String.join(",",
+                        safe(c.getClinicianId()),
+                        safe(c.getName()),
+                        safe(c.getRole()),
+                        safe(c.getSpecialty()),
+                        safe(c.getWorkplace())
+                ));
+                writer.newLine();
+            }
         }
     }
 
-    public List<Clinician> getAllClinicians() {
-        return clinicians;
+    private String safe(String value) {
+        return value == null ? "" : value.replace(",", " ");
     }
 }

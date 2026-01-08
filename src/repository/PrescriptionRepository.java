@@ -2,48 +2,106 @@ package repository;
 
 import model.Prescription;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * PrescriptionRepository
+ * ----------------------
+ * MODEL layer class responsible for:
+ *  - Loading prescriptions from prescriptions.csv
+ *  - Storing prescriptions in memory
+ *  - Writing updates back to CSV
+ *
+ * IMPORTANT:
+ *  - This class MUST match Prescription.java exactly
+ *  - Column order MUST match CSV
+ */
 public class PrescriptionRepository {
 
-    private List<Prescription> prescriptions = new ArrayList<>();
+    private final List<Prescription> prescriptions = new ArrayList<>();
 
-    public void addPrescription(Prescription prescription) {
-        prescriptions.add(prescription);
-        saveToFile(prescription);
-    }
+    /* =====================================================
+       LOAD FROM CSV
+       Expected CSV header:
+       prescriptionId,patientNhsNumber,clinicianId,medication,dosage,pharmacy,collectionStatus
+       ===================================================== */
 
-    public void loadPrescriptions(String path) {
-    try (BufferedReader br = new BufferedReader(new FileReader(path))) {
-        String line;
-        br.readLine(); // header
-        while ((line = br.readLine()) != null) {
-            String[] d = line.split(",");
-            prescriptions.add(new Prescription(
-                    d[0], d[1], d[2], d[3], d[4], d[5]
-            ));
+    public void load(String filePath) throws IOException {
+        prescriptions.clear();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line = reader.readLine(); // skip header
+
+            while ((line = reader.readLine()) != null) {
+                String[] cols = line.split(",");
+
+                Prescription p = new Prescription(
+                        cols[0].trim(), // prescriptionId
+                        cols[1].trim(), // patientNhsNumber
+                        cols[2].trim(), // clinicianId
+                        cols[3].trim(), // medication
+                        cols[4].trim(), // dosage
+                        cols[5].trim(), // pharmacy
+                        cols[6].trim()  // collectionStatus
+                );
+
+                prescriptions.add(p);
+            }
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-
-
-    private void saveToFile(Prescription prescription) {
-        try (FileWriter fw = new FileWriter("prescriptions.txt", true)) {
-            fw.write(prescription.toText());
-            fw.write("\n-----------------\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    public List<Prescription> getAllPrescriptions() {
+    /* =====================================================
+       CRUD OPERATIONS
+       ===================================================== */
+
+    public List<Prescription> getAll() {
         return prescriptions;
+    }
+
+    public void addPrescription(Prescription prescription) throws IOException {
+        prescriptions.add(prescription);
+        save("data/prescriptions.csv");
+    }
+
+    public void updatePrescription(Prescription updated) throws IOException {
+        for (int i = 0; i < prescriptions.size(); i++) {
+            if (prescriptions.get(i).getPrescriptionId()
+                    .equals(updated.getPrescriptionId())) {
+                prescriptions.set(i, updated);
+                break;
+            }
+        }
+        save("data/prescriptions.csv");
+    }
+
+    public void deletePrescription(String prescriptionId) throws IOException {
+        prescriptions.removeIf(p ->
+                p.getPrescriptionId().equals(prescriptionId));
+        save("data/prescriptions.csv");
+    }
+
+    /* =====================================================
+       SAVE TO CSV
+       ===================================================== */
+
+    private void save(String filePath) throws IOException {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+
+            writer.println("prescriptionId,patientNhsNumber,clinicianId,medication,dosage,pharmacy,collectionStatus");
+
+            for (Prescription p : prescriptions) {
+                writer.println(
+                        p.getPrescriptionId() + "," +
+                        p.getPatientNhsNumber() + "," +
+                        p.getClinicianId() + "," +
+                        p.getMedication() + "," +
+                        p.getDosage() + "," +
+                        p.getPharmacy() + "," +
+                        p.getCollectionStatus()
+                );
+            }
+        }
     }
 }

@@ -1,23 +1,26 @@
 package view;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class MainFrame extends JFrame {
 
     public MainFrame() {
-        setTitle("Healthcare Management System");
-        setSize(1000, 600);
+
+        setTitle("Healthcare Referral System");
+        setSize(1300, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.add("Patients", new PatientPanel());
-        tabs.add("Prescriptions", new PrescriptionPanel());
-        tabs.add("Referrals", new ReferralPanel());
+        tabs.addTab("Patients", new PatientPanel());
+        tabs.addTab("Clinicians", new ClinicianPanel());
+        tabs.addTab("Prescriptions", new PrescriptionPanel());
+        tabs.addTab("Referrals", new ReferralPanel());
+        tabs.addTab("Staff", new StaffPanel());
+        tabs.addTab("Facilities", new FacilityPanel());
 
-        add(tabs);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
+        add(tabs, BorderLayout.CENTER);
     }
 }

@@ -1,19 +1,41 @@
 package model;
 
+/**
+ * Clinician
+ * ---------
+ * Domain model representing a clinician such as a doctor, nurse, or specialist.
+ *
+ * Clinicians may be associated with appointments, prescriptions, and referrals.
+ */
 public class Clinician {
 
+    /** Unique identifier for the clinician */
     private String clinicianId;
+
+    /** Clinician's full name */
     private String name;
+
+    /** Role (e.g. Doctor, Nurse, Specialist) */
     private String role;
-    private String speciality;
+
+    /** Medical specialty */
+    private String specialty;
+
+    /** Workplace (e.g. hospital or GP surgery) */
     private String workplace;
 
-    public Clinician(String clinicianId, String name, String role,
-            String speciality, String workplace) {
+    /**
+     * Constructs a Clinician object.
+     */
+    public Clinician(String clinicianId,
+                     String name,
+                     String role,
+                     String specialty,
+                     String workplace) {
         this.clinicianId = clinicianId;
         this.name = name;
         this.role = role;
-        this.speciality = speciality;
+        this.specialty = specialty;
         this.workplace = workplace;
     }
 
@@ -29,8 +51,8 @@ public class Clinician {
         return role;
     }
 
-    public String getSpeciality() {
-        return speciality;
+    public String getSpecialty() {
+        return specialty;
     }
 
     public String getWorkplace() {
@@ -39,6 +61,6 @@ public class Clinician {
 
     @Override
     public String toString() {
-        return name + " (" + speciality + ")";
+        return name + " (" + specialty + ")";
     }
 }

@@ -1,50 +1,93 @@
 package model;
 
+/**
+ * Patient
+ * -------
+ * Domain model representing a patient.
+ * MODEL layer in MVC.
+ */
 public class Patient {
 
-    private String patientId;
-    private String name;
-    private String dateOfBirth;
     private String nhsNumber;
-    private String contactDetails;
-    private String gpSurgery;
+    private String firstName;
+    private String lastName;
+    private String dateOfBirth;
+    private String phoneNumber;
+    private String gender;
+    private String registeredGpSurgery;
 
-    public Patient(String patientId, String name, String dateOfBirth,
-            String nhsNumber, String contactDetails, String gpSurgery) {
-        this.patientId = patientId;
-        this.name = name;
-        this.dateOfBirth = dateOfBirth;
+    public Patient(
+            String nhsNumber,
+            String firstName,
+            String lastName,
+            String dateOfBirth,
+            String phoneNumber,
+            String gender,
+            String registeredGpSurgery
+    ) {
         this.nhsNumber = nhsNumber;
-        this.contactDetails = contactDetails;
-        this.gpSurgery = gpSurgery;
-    }
-
-    public String getPatientId() {
-        return patientId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDateOfBirth() {
-        return dateOfBirth;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.registeredGpSurgery = registeredGpSurgery;
     }
 
     public String getNhsNumber() {
         return nhsNumber;
     }
 
-    public String getContactDetails() {
-        return contactDetails;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public String getGpSurgery() {
-        return gpSurgery;
+    public String getLastName() {
+        return lastName;
     }
 
-    @Override
-    public String toString() {
-        return name + " (NHS: " + nhsNumber + ")";
+    public String getDateOfBirth() {
+        return dateOfBirth;
     }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public String getRegisteredGpSurgery() {
+        return registeredGpSurgery;
+    }
+
+    // =====================
+// SETTERS (USED BY REPOSITORY FOR UPDATES)
+// =====================
+
+public void setFirstName(String firstName) {
+    this.firstName = firstName;
+}
+
+public void setLastName(String lastName) {
+    this.lastName = lastName;
+}
+
+public void setDateOfBirth(String dateOfBirth) {
+    this.dateOfBirth = dateOfBirth;
+}
+
+public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+}
+
+public void setGender(String gender) {
+    this.gender = gender;
+}
+
+public void setRegisteredGpSurgery(String registeredGpSurgery) {
+    this.registeredGpSurgery = registeredGpSurgery;
+}
+
 }
