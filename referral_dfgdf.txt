@@ -1,0 +1,25 @@
+=== REFERRAL DOCUMENT ===
+Generated: 2026-01-12T01:11:51.777863
+
+Referral ID: dfgdf
+Patient NHS Number: fghdf
+Referring Clinician ID: gdfgdf
+From Facility: gfd
+To Facility: ghdf
+
+Urgency Level: fh
+Referral Date: 
+
+Reason for Referral:
+fhfh
+
+Clinical Summary:
+fhg
+
+Requested Investigations:
+fdfhg
+
+Status: 
+Notes: New
+
+=== END OF REFERRAL ===

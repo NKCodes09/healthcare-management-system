@@ -6,164 +6,66 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * ClinicianRepository
- * -------------------
- * Handles loading, storing, editing, and deleting clinicians.
- *
- * MODEL layer (MVC).
- */
 public class ClinicianRepository {
 
-    /** In-memory list */
+    private static final String CSV_PATH = "data/clinicians.csv";
     private final List<Clinician> clinicians = new ArrayList<>();
 
-    /** CSV source path */
-    private String sourceFilePath;
+    public ClinicianRepository() {
+        load(); // ✅ load once
+    }
 
-    /* =====================================================
-       LOAD
-       ===================================================== */
+    public void load() {
+        clinicians.clear();
 
-public void load(String filePath) throws IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
+            br.readLine(); // skip header
+            String line;
 
-    this.sourceFilePath = filePath;
-    clinicians.clear();
+            while ((line = br.readLine()) != null) {
+                String[] d = line.split(",");
+                clinicians.add(new Clinician(
+                        d[0], // clinicianId
+                        d[1], // name
+                        d[2], // role
+                        d[3], // specialty
+                        d[4] // workplace
+                ));
+            }
 
-    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-
-        // Skip header
-        br.readLine();
-
-        String line;
-        while ((line = br.readLine()) != null) {
-
-            String[] cols = line.split(",", -1);
-            if (cols.length < 6) continue;
-
-            // CSV structure:
-            // 0 = clinicianId
-            // 1 = firstName
-            // 2 = lastName
-            // 3 = role
-            // 4 = specialty
-            // 5 = workplace
-
-            String fullName = cols[1].trim() + " " + cols[2].trim();
-
-            Clinician clinician = new Clinician(
-                    cols[0].trim(),      // clinicianId
-                    fullName,            // name (combined)
-                    cols[3].trim(),      // role
-                    cols[4].trim(),      // specialty
-                    cols[5].trim()       // workplace
-            );
-
-            clinicians.add(clinician);
+        } catch (IOException e) {
+            System.err.println("Failed to load clinicians.csv: " + e.getMessage());
         }
     }
-}
-
-
-    /* =====================================================
-       READ
-       ===================================================== */
 
     public List<Clinician> getAll() {
-        return new ArrayList<>(clinicians);
+        return clinicians;
     }
 
-    public Clinician findById(String clinicianId) {
-        for (Clinician c : clinicians) {
-            if (c.getClinicianId().equalsIgnoreCase(clinicianId)) {
-                return c;
-            }
-        }
-        return null;
+    public void add(Clinician c) throws IOException {
+        clinicians.add(c);
+        writeAll();
     }
-
-    /* =====================================================
-       CREATE
-       ===================================================== */
-
-    public void add(Clinician clinician) throws IOException {
-
-        if (clinician == null || clinician.getClinicianId().isBlank()) {
-            throw new IllegalArgumentException("Clinician ID is required.");
-        }
-
-        if (findById(clinician.getClinicianId()) != null) {
-            throw new IllegalArgumentException("Clinician ID already exists.");
-        }
-
-        clinicians.add(clinician);
-        saveToCsv();
-    }
-
-    /* =====================================================
-       UPDATE
-       ===================================================== */
-
-    public void update(Clinician updated) throws IOException {
-
-        for (int i = 0; i < clinicians.size(); i++) {
-            if (clinicians.get(i).getClinicianId()
-                    .equalsIgnoreCase(updated.getClinicianId())) {
-
-                clinicians.set(i, updated);
-                saveToCsv();
-                return;
-            }
-        }
-
-        throw new IllegalArgumentException("Clinician not found.");
-    }
-
-    /* =====================================================
-       DELETE
-       ===================================================== */
 
     public void delete(String clinicianId) throws IOException {
-
-        boolean removed = clinicians.removeIf(c ->
-                c.getClinicianId().equalsIgnoreCase(clinicianId));
-
-        if (!removed) {
-            throw new IllegalArgumentException("Clinician not found.");
-        }
-
-        saveToCsv();
+        clinicians.removeIf(c -> c.getClinicianId().equals(clinicianId));
+        writeAll();
     }
 
-    /* =====================================================
-       CSV SAVE
-       ===================================================== */
+    private void writeAll() throws IOException {
 
-    private void saveToCsv() throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
 
-        if (sourceFilePath == null) {
-            throw new IllegalStateException("CSV path not set. Call load() first.");
-        }
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(sourceFilePath))) {
-
-            writer.write("clinicianId,name,role,specialty,workplace");
-            writer.newLine();
+            pw.println("clinicianId,name,role,specialty,workplace");
 
             for (Clinician c : clinicians) {
-                writer.write(String.join(",",
-                        safe(c.getClinicianId()),
-                        safe(c.getName()),
-                        safe(c.getRole()),
-                        safe(c.getSpecialty()),
-                        safe(c.getWorkplace())
-                ));
-                writer.newLine();
+                pw.println(String.join(",",
+                        c.getClinicianId(),
+                        c.getName(),
+                        c.getRole(),
+                        c.getSpecialty(),
+                        c.getWorkplace()));
             }
         }
-    }
-
-    private String safe(String value) {
-        return value == null ? "" : value.replace(",", " ");
     }
 }

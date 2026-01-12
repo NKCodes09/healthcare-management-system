@@ -38,21 +38,16 @@ public class ClinicianPanel extends JPanel {
     }
 
     private void loadClinicians() {
-        try {
-            repository.load("data/clinicians.csv");
-            model.setRowCount(0);
+        model.setRowCount(0);
 
-            for (Clinician c : repository.getAll()) {
-                model.addRow(new Object[] {
-                        c.getClinicianId(),
-                        c.getName(),
-                        c.getRole(),
-                        c.getSpecialty(),
-                        c.getWorkplace()
-                });
-            }
-        } catch (Exception e) {
-            showError(e);
+        for (Clinician c : repository.getAll()) {
+            model.addRow(new Object[] {
+                    c.getClinicianId(),
+                    c.getName(),
+                    c.getRole(),
+                    c.getSpecialty(),
+                    c.getWorkplace()
+            });
         }
     }
 
