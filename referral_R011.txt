@@ -1,0 +1,25 @@
+=== REFERRAL DOCUMENT ===
+Generated: 2026-01-08T18:00:19.119511
+
+Referral ID: R011
+Patient NHS Number: p005
+Referring Clinician ID: C005
+From Facility: sdfs
+To Facility: wef
+
+Urgency Level: sefsdfsd
+Referral Date: 
+
+Reason for Referral:
+sdfscsd
+
+Clinical Summary:
+Urgent
+
+Requested Investigations:
+2026-07-02
+
+Status: 
+Notes: New
+
+=== END OF REFERRAL ===

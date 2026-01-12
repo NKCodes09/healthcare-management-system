@@ -1,0 +1,12 @@
+=== PRESCRIPTION ===
+
+Prescription ID: sefs
+Patient NHS Number: sdf
+Clinician ID: sdf
+
+Medication: sef
+Dosage: sdf
+Pharmacy: sdf
+Collection Status: sdf
+
+=== END OF PRESCRIPTION ===

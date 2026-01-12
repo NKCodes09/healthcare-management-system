@@ -1,0 +1,25 @@
+=== REFERRAL DOCUMENT ===
+Generated: 2026-01-08T17:58:48.887703
+
+Referral ID: 34534
+Patient NHS Number: 3432
+Referring Clinician ID: 324r23
+From Facility: sfa
+To Facility: sef
+
+Urgency Level: sdf
+Referral Date: 
+
+Reason for Referral:
+sdfa
+
+Clinical Summary:
+wef
+
+Requested Investigations:
+1999-04-03
+
+Status: 
+Notes: New
+
+=== END OF REFERRAL ===
