@@ -1,41 +1,56 @@
 package model;
 
-/**
- * Patient
- * -------
- * Domain model representing a patient.
- * MODEL layer in MVC.
- */
 public class Patient {
 
-    private String nhsNumber;
+    private String patientId;
     private String firstName;
     private String lastName;
     private String dateOfBirth;
-    private String phoneNumber;
+    private String nhsNumber;
     private String gender;
-    private String registeredGpSurgery;
+    private String phoneNumber;
+    private String email;
+    private String address;
+    private String postcode;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+    private String registrationDate;
+    private String gpSurgeryId;
 
     public Patient(
-            String nhsNumber,
+            String patientId,
             String firstName,
             String lastName,
             String dateOfBirth,
-            String phoneNumber,
+            String nhsNumber,
             String gender,
-            String registeredGpSurgery
-    ) {
-        this.nhsNumber = nhsNumber;
+            String phoneNumber,
+            String email,
+            String address,
+            String postcode,
+            String emergencyContactName,
+            String emergencyContactPhone,
+            String registrationDate,
+            String gpSurgeryId) {
+        this.patientId = patientId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
-        this.phoneNumber = phoneNumber;
+        this.nhsNumber = nhsNumber;
         this.gender = gender;
-        this.registeredGpSurgery = registeredGpSurgery;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.address = address;
+        this.postcode = postcode;
+        this.emergencyContactName = emergencyContactName;
+        this.emergencyContactPhone = emergencyContactPhone;
+        this.registrationDate = registrationDate;
+        this.gpSurgeryId = gpSurgeryId;
     }
 
-    public String getNhsNumber() {
-        return nhsNumber;
+    // ✅ GETTERS (REQUIRED)
+    public String getPatientId() {
+        return patientId;
     }
 
     public String getFirstName() {
@@ -50,44 +65,43 @@ public class Patient {
         return dateOfBirth;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getNhsNumber() {
+        return nhsNumber;
     }
 
     public String getGender() {
         return gender;
     }
 
-    public String getRegisteredGpSurgery() {
-        return registeredGpSurgery;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    // =====================
-// SETTERS (USED BY REPOSITORY FOR UPDATES)
-// =====================
+    public String getEmail() {
+        return email;
+    }
 
-public void setFirstName(String firstName) {
-    this.firstName = firstName;
-}
+    public String getAddress() {
+        return address;
+    }
 
-public void setLastName(String lastName) {
-    this.lastName = lastName;
-}
+    public String getPostcode() {
+        return postcode;
+    }
 
-public void setDateOfBirth(String dateOfBirth) {
-    this.dateOfBirth = dateOfBirth;
-}
+    public String getEmergencyContactName() {
+        return emergencyContactName;
+    }
 
-public void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-}
+    public String getEmergencyContactPhone() {
+        return emergencyContactPhone;
+    }
 
-public void setGender(String gender) {
-    this.gender = gender;
-}
+    public String getRegistrationDate() {
+        return registrationDate;
+    }
 
-public void setRegisteredGpSurgery(String registeredGpSurgery) {
-    this.registeredGpSurgery = registeredGpSurgery;
-}
-
+    public String getGpSurgeryId() {
+        return gpSurgeryId;
+    }
 }

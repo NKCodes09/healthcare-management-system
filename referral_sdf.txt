@@ -1,0 +1,8 @@
+=== REFERRAL DOCUMENT ===
+
+Referral ID: sdf
+Urgency: drgdr
+Clinical Summary:
+dfgdfgd
+
+=== END ===

@@ -39,21 +39,16 @@ public class ReferralPanel extends JPanel {
     }
 
     private void loadReferrals() {
-        try {
-            repository.load("data/referrals.csv");
-            model.setRowCount(0);
+        model.setRowCount(0);
 
-            for (Referral r : repository.getAll()) {
-                model.addRow(new Object[] {
-                        r.getReferralId(),
-                        r.getPatientNhsNumber(),
-                        r.getReferringClinicianId(),
-                        r.getUrgencyLevel(),
-                        r.getStatus()
-                });
-            }
-        } catch (Exception e) {
-            showError(e);
+        for (Referral r : repository.getAll()) {
+            model.addRow(new Object[] {
+                    r.getReferralId(),
+                    r.getPatientNhsNumber(),
+                    r.getReferringClinicianId(),
+                    r.getUrgencyLevel(),
+                    r.getStatus()
+            });
         }
     }
 
@@ -67,15 +62,54 @@ public class ReferralPanel extends JPanel {
                     JOptionPane.showInputDialog(this, "To Facility"),
                     JOptionPane.showInputDialog(this, "Clinical Summary"),
                     JOptionPane.showInputDialog(this, "Urgency"),
-                    JOptionPane.showInputDialog(this, "Date"),
+                    JOptionPane.showInputDialog(this, "Referral Date"),
                     JOptionPane.showInputDialog(this, "Reason"),
                     "", "New", "");
 
-            ReferralManager.getInstance().processReferral(r);
+            ReferralManager
+                    .getInstance()
+                    .processReferral(r, repository);
+
             loadReferrals();
 
+            JOptionPane.showMessageDialog(this, "Referral created successfully.");
+
         } catch (Exception e) {
-            showError(e);
+            JOptionPane.showMessageDialog(this, e.getMessage());
+        }
+    }
+    
+    private void editReferral() {
+        int row = table.getSelectedRow();
+        if (row == -1)
+            return;
+
+        try {
+            String id = model.getValueAt(row, 0).toString();
+
+            String newStatus = JOptionPane.showInputDialog(
+                    this,
+                    "Update Status",
+                    model.getValueAt(row, 3) // column index of status
+            );
+
+            if (newStatus == null || newStatus.trim().isEmpty())
+                return;
+
+            Referral updated = new Referral(
+                    id,
+                    "", "", "", "",
+                    model.getValueAt(row, 1).toString(), // summary
+                    model.getValueAt(row, 2).toString(), // urgency
+                    "", "", "",
+                    newStatus,
+                    "");
+
+            repository.updateReferral(updated);
+            loadReferrals(); // ✅ reload table
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 
@@ -85,10 +119,11 @@ public class ReferralPanel extends JPanel {
             return;
 
         try {
-            repository.deleteReferral(model.getValueAt(row, 0).toString());
+            String id = model.getValueAt(row, 0).toString();
+            repository.deleteReferral(id); // same repo
             loadReferrals();
         } catch (Exception e) {
-            showError(e);
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 

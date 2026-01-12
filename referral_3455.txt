@@ -1,0 +1,25 @@
+=== REFERRAL DOCUMENT ===
+Generated: 2026-01-12T01:25:37.830246
+
+Referral ID: 3455
+Patient NHS Number: 345
+Referring Clinician ID: 345
+From Facility: ertg
+To Facility: dsg
+
+Urgency Level: sfsz
+Referral Date: 
+
+Reason for Referral:
+drg
+
+Clinical Summary:
+drg
+
+Requested Investigations:
+3454
+
+Status: 
+Notes: New
+
+=== END OF REFERRAL ===

@@ -1,0 +1,25 @@
+=== REFERRAL DOCUMENT ===
+Generated: 2026-01-12T01:24:20.503830
+
+Referral ID: 4r34
+Patient NHS Number: 3453
+Referring Clinician ID: 345
+From Facility: sdf
+To Facility: sdf
+
+Urgency Level: dgfs
+Referral Date: 
+
+Reason for Referral:
+sdf
+
+Clinical Summary:
+rdfs
+
+Requested Investigations:
+3453
+
+Status: 
+Notes: New
+
+=== END OF REFERRAL ===
