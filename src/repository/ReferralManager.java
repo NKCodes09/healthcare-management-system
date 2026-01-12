@@ -1,8 +1,11 @@
 package repository;
 
 import model.Referral;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class ReferralManager {
 
@@ -27,19 +30,33 @@ public class ReferralManager {
         repository.addReferral(r);
 
         // 2️⃣ Generate referral text file
-        writeReferralTextFile(r);
+        writeReferralFile(r);
     }
 
-    private void writeReferralTextFile(Referral r) throws IOException {
+    private static final String OUTPUT_DIR = "output/referrals";
 
-        String fileName = "referral_" + r.getReferralId() + ".txt";
+    private void writeReferralFile(Referral r) throws IOException {
 
-        try (FileWriter writer = new FileWriter(fileName)) {
-            writer.write("=== REFERRAL DOCUMENT ===\n\n");
-            writer.write("Referral ID: " + r.getReferralId() + "\n");
-            writer.write("Urgency: " + r.getUrgencyLevel() + "\n");
-            writer.write("Clinical Summary:\n" + r.getClinicalSummary() + "\n");
-            writer.write("\n=== END ===\n");
-        }
+    File dir = new File(OUTPUT_DIR);
+    if (!dir.exists()) {
+        dir.mkdirs(); // ✅ auto-create folder
     }
+
+    File file = new File(dir, "referral_" + r.getReferralId() + ".txt");
+
+    try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+        pw.println("Referral ID: " + r.getReferralId());
+        pw.println("Patient ID: " + r.getPatientId());
+        pw.println("Clinician ID: " + r.getReferringClinicianId());
+        pw.println("Date: " + r.getReferralDate());
+        pw.println("Urgency: " + r.getUrgencyLevel());
+        pw.println("Status: " + r.getStatus());
+        pw.println();
+        pw.println("Reason:");
+        pw.println(r.getReferralReason());
+        pw.println();
+        pw.println("Clinical Summary:");
+        pw.println(r.getClinicalSummary());
+    }
+}
 }

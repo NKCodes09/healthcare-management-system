@@ -1,0 +1,7 @@
+Prescription ID: dfsd
+Patient NHS: sd
+Clinician ID: fsd
+Medication: fs
+Dosage: df
+Pharmacy: sdf
+Status: sdf

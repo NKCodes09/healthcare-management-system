@@ -1,8 +1,0 @@
-=== REFERRAL DOCUMENT ===
-
-Referral ID: sdf
-Urgency: fsd
-Clinical Summary:
-f
-
-=== END ===

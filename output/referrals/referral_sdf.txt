@@ -1,12 +1,12 @@
-REFERRAL NOTICE
---------------------------------
 Referral ID: sdf
-Patient NHS Number: sdf
-Referring Clinician ID: sdf
-From Facility: sdf
-To Facility: sdf
-Urgency Level: sdf
-Referral Date: sdf
+Patient ID: s
+Clinician ID: f
+Date: sd
+Urgency: f
+Status: New
+
+Reason:
+sdf
 
 Clinical Summary:
-sdf
+s
