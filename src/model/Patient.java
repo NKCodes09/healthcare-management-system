@@ -2,6 +2,9 @@ package model;
 
 public class Patient {
 
+    // =========================
+    // FIELDS
+    // =========================
     private String patientId;
     private String firstName;
     private String lastName;
@@ -9,14 +12,11 @@ public class Patient {
     private String nhsNumber;
     private String gender;
     private String phoneNumber;
-    private String email;
-    private String address;
-    private String postcode;
-    private String emergencyContactName;
-    private String emergencyContactPhone;
-    private String registrationDate;
     private String gpSurgeryId;
 
+    // =========================
+    // FULL CONSTRUCTOR (CSV)
+    // =========================
     public Patient(
             String patientId,
             String firstName,
@@ -39,16 +39,36 @@ public class Patient {
         this.nhsNumber = nhsNumber;
         this.gender = gender;
         this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.address = address;
-        this.postcode = postcode;
-        this.emergencyContactName = emergencyContactName;
-        this.emergencyContactPhone = emergencyContactPhone;
-        this.registrationDate = registrationDate;
         this.gpSurgeryId = gpSurgeryId;
     }
 
-    // ✅ GETTERS (REQUIRED)
+    // =========================
+    // SIMPLIFIED CONSTRUCTOR (GUI)
+    // =========================
+    public Patient(
+            String patientId,
+            String firstName,
+            String lastName,
+            String dateOfBirth,
+            String nhsNumber,
+            String gender,
+            String phoneNumber,
+            String gpSurgeryId) {
+        this.patientId = patientId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.nhsNumber = nhsNumber;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.gpSurgeryId = gpSurgeryId;
+
+        
+    }
+
+    // =========================
+    // GETTERS
+    // =========================
     public String getPatientId() {
         return patientId;
     }
@@ -76,31 +96,7 @@ public class Patient {
     public String getPhoneNumber() {
         return phoneNumber;
     }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public String getPostcode() {
-        return postcode;
-    }
-
-    public String getEmergencyContactName() {
-        return emergencyContactName;
-    }
-
-    public String getEmergencyContactPhone() {
-        return emergencyContactPhone;
-    }
-
-    public String getRegistrationDate() {
-        return registrationDate;
-    }
-
+    
     public String getGpSurgeryId() {
         return gpSurgeryId;
     }

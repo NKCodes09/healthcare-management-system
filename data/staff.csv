@@ -1,6 +1,5 @@
 staffId,firstName,lastName,role,department
 ST001,Michelle,Adams,Practice Manager,Administration
-ST002,James,Wilson,Receptionist,Front Desk
 ST003,Carol,Smith,Medical Secretary,Administration
 ST004,Peter,Johnson,Healthcare Assistant,Clinical Support
 ST005,Sandra,Brown,Practice Manager,Administration
@@ -13,4 +12,3 @@ ST011,David,Thompson,Hospital Administrator,Administration
 ST012,Julie,Roberts,Ward Clerk,Administration
 ST013,Mark,Evans,Porter,Support Services
 ST015,Andrew,Phillips,Medical Records Clerk,Administration
-sfsaf,saf,,s,f

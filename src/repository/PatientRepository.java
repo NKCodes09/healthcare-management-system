@@ -15,14 +15,21 @@ public class PatientRepository {
     }
 
     private void load() {
+
         patients.clear();
 
         try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
-            br.readLine(); // skip header
-            String line;
+            String line = br.readLine(); // skip header
 
             while ((line = br.readLine()) != null) {
-                String[] d = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
+                // Expect EXACTLY 8 columns
+                String[] d = line.split(",");
+
+                if (d.length != 8) {
+                    // skip corrupted rows safely
+                    continue;
+                }
 
                 patients.add(new Patient(
                         d[0], // patient_id
@@ -32,13 +39,7 @@ public class PatientRepository {
                         d[4], // nhs_number
                         d[5], // gender
                         d[6], // phone_number
-                        d[7], // email
-                        d[8], // address
-                        d[9], // postcode
-                        d[10], // emergency_contact_name
-                        d[11], // emergency_contact_phone
-                        d[12], // registration_date
-                        d[13] // gp_surgery_id
+                        d[7] // gp_surgery_id ✅
                 ));
             }
 
@@ -60,12 +61,11 @@ public class PatientRepository {
 
         for (int i = 0; i < patients.size(); i++) {
             if (patients.get(i).getPatientId().equals(updated.getPatientId())) {
-                patients.set(i, updated); // ✅ replace object
+                patients.set(i, updated);
                 break;
             }
         }
-
-        writeAll(); // ✅ persist changes to CSV
+        writeAll();
     }
 
     public void deletePatient(String patientId) throws IOException {
@@ -77,8 +77,9 @@ public class PatientRepository {
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
 
+            // ✅ 8-column header ONLY
             pw.println(
-                    "patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,email,address,postcode,emergency_contact_name,emergency_contact_phone,registration_date,gp_surgery_id");
+                    "patient_id,first_name,last_name,date_of_birth,nhs_number,gender,phone_number,gp_surgery_id");
 
             for (Patient p : patients) {
                 pw.println(String.join(",",
@@ -89,12 +90,6 @@ public class PatientRepository {
                         p.getNhsNumber(),
                         p.getGender(),
                         p.getPhoneNumber(),
-                        p.getEmail(),
-                        "\"" + p.getAddress() + "\"",
-                        p.getPostcode(),
-                        p.getEmergencyContactName(),
-                        p.getEmergencyContactPhone(),
-                        p.getRegistrationDate(),
                         p.getGpSurgeryId()));
             }
         }
