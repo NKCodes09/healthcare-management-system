@@ -23,21 +23,10 @@ public class PrescriptionPanel extends JPanel {
         setLayout(new BorderLayout());
 
         model = new DefaultTableModel(new String[] {
-                "Prescription ID",
-                "Patient ID",
-                "Clinician ID",
-                "Appointment ID",
-                "Prescription Date",
-                "Medication",
-                "Dosage",
-                "Frequency",
-                "Duration (Days)",
-                "Quantity",
-                "Instructions",
-                "Pharmacy",
-                "Status",
-                "Issue Date",
-                "Collection Date"
+                "Prescription ID", "Patient ID", "Clinician ID", "Appointment ID",
+                "Prescription Date", "Medication", "Dosage", "Frequency",
+                "Duration (Days)", "Quantity", "Instructions",
+                "Pharmacy", "Status", "Issue Date", "Collection Date"
         }, 0);
 
         table = new JTable(model);
@@ -67,7 +56,7 @@ public class PrescriptionPanel extends JPanel {
         return p;
     }
 
-    /* ================= LOAD TABLE ================= */
+    /* ================= LOAD ================= */
 
     private void loadPrescriptions() {
         model.setRowCount(0);
@@ -110,7 +99,7 @@ public class PrescriptionPanel extends JPanel {
     private void editPrescription() {
         int row = table.getSelectedRow();
         if (row == -1) {
-            showError("Select a prescription to edit.");
+            showError("Select a prescription first.");
             return;
         }
 
@@ -122,9 +111,8 @@ public class PrescriptionPanel extends JPanel {
 
         Prescription updated = form.getPrescription();
 
-        // 🔒 Keep original ID
         Prescription fixed = new Prescription(
-                existing.getPrescriptionId(),
+                existing.getPrescriptionId(), // 🔒 ID locked
                 updated.getPatientId(),
                 updated.getClinicianId(),
                 updated.getAppointmentId(),
@@ -153,7 +141,7 @@ public class PrescriptionPanel extends JPanel {
     private void deletePrescription() {
         int row = table.getSelectedRow();
         if (row == -1) {
-            showError("Select a prescription to delete.");
+            showError("Select a prescription first.");
             return;
         }
 
@@ -195,19 +183,12 @@ public class PrescriptionPanel extends JPanel {
             JPanel panel = new JPanel(new GridLayout(0, 2, 6, 6));
 
             String[] labels = {
-                    "Prescription ID",
-                    "Patient ID",
-                    "Clinician ID",
-                    "Appointment ID",
+                    "Prescription ID", "Patient ID", "Clinician ID", "Appointment ID",
                     "Prescription Date (YYYY-M-D)",
-                    "Medication Name",
-                    "Dosage",
-                    "Frequency",
-                    "Duration Days",
-                    "Quantity",
-                    "Instructions",
-                    "Pharmacy Name",
-                    "Status",
+                    "Medication Name", "Dosage", "Frequency",
+                    "Duration Days", "Quantity",
+                    "Instructions", "Pharmacy Name",
+                    "Status (Issued / Collected)",
                     "Issue Date (YYYY-M-D)",
                     "Collection Date (YYYY-M-D)"
             };
@@ -235,16 +216,14 @@ public class PrescriptionPanel extends JPanel {
                 f[13].setText(original.getIssueDate());
                 f[14].setText(original.getCollectionDate());
 
-                f[0].setEditable(false); // 🔒 ID locked
+                f[0].setEditable(false); // 🔒 ID lock
             }
 
             while (true) {
                 int result = JOptionPane.showConfirmDialog(
-                        null,
-                        panel,
+                        null, panel,
                         original == null ? "Add Prescription" : "Edit Prescription",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE);
+                        JOptionPane.OK_CANCEL_OPTION);
 
                 if (result != JOptionPane.OK_OPTION)
                     return false;
@@ -257,13 +236,45 @@ public class PrescriptionPanel extends JPanel {
 
         private boolean validate() {
 
-            if (f[0].getText().trim().isEmpty()) {
-                error("Prescription ID is required.");
+            if (!f[0].getText().matches("RX\\d{3}")) {
+                error("Prescription ID must be RX001 format.");
                 return false;
             }
 
-            if (parseFlexibleDate(f[4].getText()) == null) {
+            if (!f[1].getText().matches("P\\d{3}")) {
+                error("Patient ID must be like P001.");
+                return false;
+            }
+
+            if (!f[2].getText().matches("C\\d{3}")) {
+                error("Clinician ID must be like C001.");
+                return false;
+            }
+
+            if (!f[3].getText().trim().isEmpty()
+                    && !f[3].getText().matches("A\\d{3}")) {
+                error("Appointment ID must be empty or A001 format.");
+                return false;
+            }
+
+            LocalDate prescriptionDate = parseDate(f[4].getText());
+            if (prescriptionDate == null) {
                 error("Invalid prescription date.");
+                return false;
+            }
+
+            if (f[5].getText().trim().length() < 2) {
+                error("Medication name required.");
+                return false;
+            }
+
+            if (f[6].getText().trim().isEmpty()) {
+                error("Dosage is required.");
+                return false;
+            }
+
+            if (f[7].getText().trim().isEmpty()) {
+                error("Frequency is required.");
                 return false;
             }
 
@@ -277,44 +288,59 @@ public class PrescriptionPanel extends JPanel {
                 return false;
             }
 
-            if (parseFlexibleDate(f[13].getText()) == null) {
+            if (f[10].getText().trim().length() < 3) {
+                error("Instructions required.");
+                return false;
+            }
+
+            if (f[11].getText().trim().length() < 3) {
+                error("Pharmacy name required.");
+                return false;
+            }
+
+            if (!f[12].getText().matches("Issued|Collected")) {
+                error("Status must be Issued or Collected.");
+                return false;
+            }
+
+            LocalDate issueDate = parseDate(f[13].getText());
+            if (issueDate == null) {
                 error("Invalid issue date.");
                 return false;
             }
 
-            if (!f[14].getText().trim().isEmpty()
-                    && parseFlexibleDate(f[14].getText()) == null) {
-                error("Invalid collection date.");
-                return false;
+            LocalDate collectionDate = null;
+            if (!f[14].getText().trim().isEmpty()) {
+                collectionDate = parseDate(f[14].getText());
+                if (collectionDate == null || collectionDate.isBefore(issueDate)) {
+                    error("Collection date must be after issue date.");
+                    return false;
+                }
             }
 
             return true;
         }
 
-        private LocalDate parseFlexibleDate(String input) {
+        private LocalDate parseDate(String input) {
             try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
-                return LocalDate.parse(input.trim(), formatter);
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-M-d");
+                return LocalDate.parse(input.trim(), fmt);
             } catch (DateTimeParseException e) {
                 return null;
             }
         }
 
         private void error(String msg) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    msg,
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, msg, "Validation Error", JOptionPane.ERROR_MESSAGE);
         }
 
         /* ================= CREATE OBJECT ================= */
 
         Prescription getPrescription() {
 
-            LocalDate prescriptionDate = parseFlexibleDate(f[4].getText());
-            LocalDate issueDate = parseFlexibleDate(f[13].getText());
-            LocalDate collectionDate = parseFlexibleDate(f[14].getText());
+            LocalDate prescriptionDate = parseDate(f[4].getText());
+            LocalDate issueDate = parseDate(f[13].getText());
+            LocalDate collectionDate = parseDate(f[14].getText());
 
             return new Prescription(
                     f[0].getText().trim(),

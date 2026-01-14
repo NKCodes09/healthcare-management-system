@@ -24,7 +24,7 @@ public class ClinicianPanel extends JPanel {
 
         model = new DefaultTableModel(new String[] {
                 "Clinician ID", "First Name", "Last Name", "Title", "Speciality",
-                "GMC Number", "Phone", "Email",
+                "GMC/NMC Number", "Phone", "Email",
                 "Workplace ID", "Workplace Type",
                 "Employment Status", "Start Date"
         }, 0);
@@ -33,12 +33,12 @@ public class ClinicianPanel extends JPanel {
         loadClinicians();
 
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(buttons(), BorderLayout.SOUTH);
+        add(createButtons(), BorderLayout.SOUTH);
     }
 
-    /* ---------------- Buttons ---------------- */
+    /* ================= BUTTONS ================= */
 
-    private JPanel buttons() {
+    private JPanel createButtons() {
         JPanel p = new JPanel();
 
         JButton add = new JButton("Add");
@@ -56,7 +56,7 @@ public class ClinicianPanel extends JPanel {
         return p;
     }
 
-    /* ---------------- Load ---------------- */
+    /* ================= LOAD ================= */
 
     private void loadClinicians() {
         model.setRowCount(0);
@@ -78,7 +78,7 @@ public class ClinicianPanel extends JPanel {
         }
     }
 
-    /* ---------------- CRUD ---------------- */
+    /* ================= CRUD ================= */
 
     private void addClinician() {
         ClinicianForm form = new ClinicianForm(null);
@@ -109,7 +109,7 @@ public class ClinicianPanel extends JPanel {
         Clinician updated = form.getClinician();
 
         Clinician fixed = new Clinician(
-                existing.getClinicianId(),
+                existing.getClinicianId(), // 🔒 ID locked
                 updated.getFirstName(),
                 updated.getLastName(),
                 updated.getTitle(),
@@ -157,7 +157,11 @@ public class ClinicianPanel extends JPanel {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    /* ===================== CLINICIAN FORM ===================== */
+    /*
+     * =====================================================
+     * CLINICIAN FORM
+     * =====================================================
+     */
 
     private static class ClinicianForm {
 
@@ -174,7 +178,7 @@ public class ClinicianPanel extends JPanel {
 
             String[] labels = {
                     "Clinician ID", "First Name", "Last Name", "Title", "Speciality",
-                    "GMC Number", "Phone", "Email",
+                    "GMC/NMC Number", "Phone", "Email",
                     "Workplace ID", "Workplace Type",
                     "Employment Status", "Start Date (YYYY-M-D)"
             };
@@ -199,7 +203,7 @@ public class ClinicianPanel extends JPanel {
                 f[10].setText(original.getEmploymentStatus());
                 f[11].setText(original.getStartDate());
 
-                f[0].setEditable(false);
+                f[0].setEditable(false); // 🔒 ID locked
             }
 
             while (true) {
@@ -215,24 +219,67 @@ public class ClinicianPanel extends JPanel {
             }
         }
 
+        /* ================= VALIDATION ================= */
+
         private boolean validate() {
 
+            if (!f[0].getText().matches("C\\d{3}")) {
+                error("Clinician ID must be in format C001.");
+                return false;
+            }
+
+            if (!f[1].getText().matches("[A-Za-z\\s]{2,}")) {
+                error("First name invalid.");
+                return false;
+            }
+
+            if (!f[2].getText().matches("[A-Za-z\\s]{2,}")) {
+                error("Last name invalid.");
+                return false;
+            }
+
+            if (f[3].getText().trim().isEmpty()) {
+                error("Title is required.");
+                return false;
+            }
+
+            if (f[4].getText().trim().isEmpty()) {
+                error("Speciality is required.");
+                return false;
+            }
+
             if (!(f[5].getText().matches("\\d{7}") || f[5].getText().matches("N\\d{6}"))) {
-                error("Invalid GMC/NMC number.");
+                error("GMC must be 7 digits or N######.");
                 return false;
             }
 
             if (!f[6].getText().matches("\\d{10,11}")) {
-                error("Invalid phone number.");
+                error("Phone number must be 10–11 digits.");
                 return false;
             }
 
-            if (!f[7].getText().contains("@")) {
+            if (!f[7].getText().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
                 error("Invalid email address.");
                 return false;
             }
 
-            if (parseDate(f[11].getText()) == null) {
+            if (!f[8].getText().matches("[SH]\\d{3}")) {
+                error("Workplace ID must be like S001 or H001.");
+                return false;
+            }
+
+            if (!f[9].getText().matches("GP Surgery|Hospital")) {
+                error("Workplace type must be GP Surgery or Hospital.");
+                return false;
+            }
+
+            if (!f[10].getText().matches("Full-time|Part-time")) {
+                error("Employment status must be Full-time or Part-time.");
+                return false;
+            }
+
+            LocalDate start = parseDate(f[11].getText());
+            if (start == null || start.isAfter(LocalDate.now())) {
                 error("Invalid start date.");
                 return false;
             }
@@ -252,6 +299,8 @@ public class ClinicianPanel extends JPanel {
         private void error(String msg) {
             JOptionPane.showMessageDialog(null, msg, "Validation Error", JOptionPane.ERROR_MESSAGE);
         }
+
+        /* ================= CREATE OBJECT ================= */
 
         Clinician getClinician() {
             LocalDate startDate = parseDate(f[11].getText());
