@@ -1,12 +1,12 @@
-import view.MainFrame;
+import javax.swing.SwingUtilities;
+import view.LoginFrame;
 
 public class Main {
+
     public static void main(String[] args) {
 
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            MainFrame frame = new MainFrame();
-            frame.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            new LoginFrame().setVisible(true);
         });
-
     }
 }

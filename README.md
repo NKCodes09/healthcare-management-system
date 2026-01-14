@@ -1,6 +1,29 @@
-## Getting Started
+====================================================
+Healthcare Management System – Test Login Credentials
+====================================================
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Use the following accounts to test the application:
+
+ADMIN
+Username: admin
+Password: admin123
+
+CLINICIAN
+Username: c001
+Password: pass123
+
+STAFF
+Username: st001
+Password: pass123
+
+PATIENT
+Username: p001
+Password: pass123
+
+----------------------------------------------------
+Data source: CSV-based authentication (users.csv)
+Roles control access to system functionality.
+----------------------------------------------------
 
 ## Folder Structure
 
@@ -8,11 +31,3 @@ The workspace contains two folders by default, where:
 
 - `src`: the folder to maintain sources
 - `lib`: the folder to maintain dependencies
-
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
