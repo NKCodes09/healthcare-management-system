@@ -1,85 +1,112 @@
-// package repository;
+package repository;
 
-// import model.Appointment;
+import model.Appointment;
+import java.io.*;
+import java.util.*;
 
-// import java.io.BufferedReader;
-// import java.io.FileReader;
-// import java.io.IOException;
-// import java.util.ArrayList;
-// import java.util.List;
+public class AppointmentRepository {
 
-// /**
-//  * AppointmentRepository
-//  * ---------------------
-//  * Loads appointment records from appointments.csv and stores them in memory.
-//  *
-//  * Appointments create an association between patients and clinicians
-//  * using NHS numbers and clinician IDs.
-//  */
-// public class AppointmentRepository {
+    private static final String CSV_PATH = "data/appointments.csv";
 
-//     /**
-//      * In-memory list of appointments.
-//      */
-//     private final List<Appointment> appointments = new ArrayList<>();
+    private final List<Appointment> appointments = new ArrayList<>();
+    private final List<String[]> rawRows = new ArrayList<>();
+    private String header;
 
-//     /**
-//      * Loads appointments from a CSV file.
-//      *
-//      * @param filePath path to appointments.csv (e.g. "data/appointments.csv")
-//      * @throws IOException if file cannot be read
-//      */
-//     public void load(String filePath) throws IOException {
+    public AppointmentRepository() {
+        load();
+    }
 
-//         appointments.clear();
+    private void load() {
 
-//         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        appointments.clear();
+        rawRows.clear();
 
-//             // Skip header row
-//             String header = reader.readLine();
-//             if (header == null) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
 
-//             String line;
-//             while ((line = reader.readLine()) != null) {
+            header = br.readLine();
+            if (header == null)
+                return;
 
-//                 String[] cols = CsvUtil.splitCsvLine(line);
+            String[] headers = CsvUtil.splitCsvLine(header);
+            Map<String, Integer> index = new HashMap<>();
+            for (int i = 0; i < headers.length; i++)
+                index.put(headers[i], i);
 
-//                 /*
-//                  * Expected appointments.csv column order:
-//                  * 0 = appointmentId
-//                  * 1 = patientNhsNumber
-//                  * 2 = clinicianId
-//                  * 3 = dateTime
-//                  * 4 = reason
-//                  * 5 = status
-//                  */
-//                 String appointmentId = CsvUtil.get(cols, 0);
-//                 String patientNhs = CsvUtil.get(cols, 1);
-//                 String clinicianId = CsvUtil.get(cols, 2);
-//                 String dateTime = CsvUtil.get(cols, 3);
-//                 String reason = CsvUtil.get(cols, 4);
-//                 String status = CsvUtil.get(cols, 5);
+            String line;
+            while ((line = br.readLine()) != null) {
 
-//                 if (appointmentId.isEmpty()) continue;
+                String[] c = CsvUtil.splitCsvLine(line);
+                rawRows.add(c);
 
-//                 Appointment appointment = new Appointment(
-//                         appointmentId,
-//                         patientNhs,
-//                         clinicianId,
-//                         dateTime,
-//                         reason,
-//                         status
-//                 );
+                appointments.add(new Appointment(
+                        CsvUtil.get(c, index.get("appointment_id")),
+                        CsvUtil.get(c, index.get("patient_id")),
+                        CsvUtil.get(c, index.get("clinician_id")),
+                        CsvUtil.get(c, index.get("facility_id")),
+                        CsvUtil.get(c, index.get("appointment_date")),
+                        CsvUtil.get(c, index.get("appointment_time")),
+                        CsvUtil.get(c, index.get("duration_minutes")),
+                        CsvUtil.get(c, index.get("appointment_type")),
+                        CsvUtil.get(c, index.get("status")),
+                        CsvUtil.get(c, index.get("reason_for_visit")),
+                        CsvUtil.get(c, index.get("notes")),
+                        CsvUtil.get(c, index.get("created_date")),
+                        CsvUtil.get(c, index.get("last_modified"))));
+            }
 
-//                 appointments.add(appointment);
-//             }
-//         }
-//     }
+        } catch (IOException e) {
+            System.err.println("Failed to load appointments.csv");
+        }
+    }
 
-//     /**
-//      * Returns a copy of all loaded appointments.
-//      */
-//     public List<Appointment> getAll() {
-//         return new ArrayList<>(appointments);
-//     }
-// }
+    public List<Appointment> getAll() {
+        return appointments;
+    }
+
+    public void add(Appointment a) throws IOException {
+
+        appointments.add(a);
+        rawRows.add(new String[] {
+                a.getAppointmentId(),
+                a.getPatientId(),
+                a.getClinicianId(),
+                a.getFacilityId(),
+                a.getAppointmentDate(),
+                a.getAppointmentTime(),
+                a.getDurationMinutes(),
+                a.getAppointmentType(),
+                a.getStatus(),
+                a.getReasonForVisit(),
+                a.getNotes(),
+                a.getCreatedDate(),
+                a.getLastModified()
+        });
+
+        writeAll();
+    }
+
+    public void delete(int index) throws IOException {
+        appointments.remove(index);
+        rawRows.remove(index);
+        writeAll();
+    }
+
+    public void updateAll() throws IOException {
+        writeAll();
+    }
+
+    private void writeAll() throws IOException {
+
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
+
+            pw.println(header);
+
+            for (String[] r : rawRows) {
+                for (int i = 0; i < r.length; i++)
+                    r[i] = CsvUtil.escape(r[i]);
+
+                pw.println(String.join(",", r));
+            }
+        }
+    }
+}

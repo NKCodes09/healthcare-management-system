@@ -1,71 +1,100 @@
 package model;
 
-/**
- * Appointment
- * -----------
- * Represents an appointment between a patient and a clinician.
- *
- * This class establishes an association between Patient and Clinician
- * using their respective identifiers.
- */
 public class Appointment {
 
-    /** Unique appointment identifier */
     private String appointmentId;
-
-    /** NHS number of the patient attending */
-    private String patientNhsNumber;
-
-    /** Clinician responsible for the appointment */
+    private String patientId;
     private String clinicianId;
-
-    /** Date and time of the appointment */
-    private String dateTime;
-
-    /** Reason for the visit */
-    private String reason;
-
-    /** Status (e.g. Scheduled, Completed, Cancelled) */
+    private String facilityId;
+    private String appointmentDate;
+    private String appointmentTime;
+    private String durationMinutes;
+    private String appointmentType;
     private String status;
+    private String reasonForVisit;
+    private String notes;
+    private String createdDate;
+    private String lastModified;
 
-    /**
-     * Constructs an Appointment object.
-     */
-    public Appointment(String appointmentId,
-                       String patientNhsNumber,
-                       String clinicianId,
-                       String dateTime,
-                       String reason,
-                       String status) {
+    public Appointment(
+            String appointmentId,
+            String patientId,
+            String clinicianId,
+            String facilityId,
+            String appointmentDate,
+            String appointmentTime,
+            String durationMinutes,
+            String appointmentType,
+            String status,
+            String reasonForVisit,
+            String notes,
+            String createdDate,
+            String lastModified) {
+
         this.appointmentId = appointmentId;
-        this.patientNhsNumber = patientNhsNumber;
+        this.patientId = patientId;
         this.clinicianId = clinicianId;
-        this.dateTime = dateTime;
-        this.reason = reason;
+        this.facilityId = facilityId;
+        this.appointmentDate = appointmentDate;
+        this.appointmentTime = appointmentTime;
+        this.durationMinutes = durationMinutes;
+        this.appointmentType = appointmentType;
         this.status = status;
+        this.reasonForVisit = reasonForVisit;
+        this.notes = notes;
+        this.createdDate = createdDate;
+        this.lastModified = lastModified;
     }
 
     public String getAppointmentId() {
         return appointmentId;
     }
 
-    public String getPatientNhsNumber() {
-        return patientNhsNumber;
+    public String getPatientId() {
+        return patientId;
     }
 
     public String getClinicianId() {
         return clinicianId;
     }
 
-    public String getDateTime() {
-        return dateTime;
+    public String getFacilityId() {
+        return facilityId;
     }
 
-    public String getReason() {
-        return reason;
+    public String getAppointmentDate() {
+        return appointmentDate;
+    }
+
+    public String getAppointmentTime() {
+        return appointmentTime;
+    }
+
+    public String getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public String getAppointmentType() {
+        return appointmentType;
     }
 
     public String getStatus() {
         return status;
+    }
+
+    public String getReasonForVisit() {
+        return reasonForVisit;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public String getCreatedDate() {
+        return createdDate;
+    }
+
+    public String getLastModified() {
+        return lastModified;
     }
 }

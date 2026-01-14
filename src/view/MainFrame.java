@@ -20,6 +20,7 @@ public class MainFrame extends JFrame {
         tabs.addTab("Referrals", new ReferralPanel());
         tabs.addTab("Staff", new StaffPanel());
         tabs.addTab("Facilities", new FacilityPanel());
+        tabs.addTab("Appointments", new AppointmentPanel());
 
         add(tabs, BorderLayout.CENTER);
     }
