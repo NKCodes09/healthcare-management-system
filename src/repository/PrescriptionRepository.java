@@ -1,148 +1,109 @@
 package repository;
 
 import model.Prescription;
-
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * PrescriptionRepository
- * ----------------------
- * MODEL layer class responsible for:
- *  - Loading prescriptions from prescriptions.csv
- *  - Storing prescriptions in memory
- *  - Writing updates back to CSV
- *
- * IMPORTANT:
- *  - This class MUST match Prescription.java exactly
- *  - Column order MUST match CSV
- */
 public class PrescriptionRepository {
 
+    private static final String CSV_PATH = "data/prescriptions.csv";
     private final List<Prescription> prescriptions = new ArrayList<>();
 
-    /* =====================================================
-       LOAD FROM CSV
-       Expected CSV header:
-       prescriptionId,patientNhsNumber,clinicianId,medication,dosage,pharmacy,collectionStatus
-       ===================================================== */
+    public PrescriptionRepository() {
+        load();
+    }
 
-    public void load(String filePath) throws IOException {
+    private void load() {
         prescriptions.clear();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line = reader.readLine(); // skip header
+        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
 
-            while ((line = reader.readLine()) != null) {
-                String[] cols = line.split(",");
+            String headerLine = br.readLine();
+            if (headerLine == null)
+                return;
 
-                Prescription p = new Prescription(
-                        cols[0].trim(), // prescriptionId
-                        cols[1].trim(), // patientNhsNumber
-                        cols[2].trim(), // clinicianId
-                        cols[3].trim(), // medication
-                        cols[4].trim(), // dosage
-                        cols[5].trim(), // pharmacy
-                        cols[6].trim()  // collectionStatus
-                );
-
-                prescriptions.add(p);
+            String[] headers = headerLine.split(",");
+            Map<String, Integer> index = new HashMap<>();
+            for (int i = 0; i < headers.length; i++) {
+                index.put(headers[i].trim(), i);
             }
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] c = CsvUtil.splitCsvLine(line);
+
+                prescriptions.add(new Prescription(
+                        get(c, index, "prescription_id"),
+                        get(c, index, "patient_id"),
+                        get(c, index, "clinician_id"),
+                        get(c, index, "appointment_id"),
+                        get(c, index, "prescription_date"),
+                        get(c, index, "medication_name"),
+                        get(c, index, "dosage"),
+                        get(c, index, "frequency"),
+                        get(c, index, "duration_days"),
+                        get(c, index, "quantity"),
+                        get(c, index, "instructions"),
+                        get(c, index, "pharmacy_name"),
+                        get(c, index, "status"),
+                        get(c, index, "issue_date"),
+                        get(c, index, "collection_date")));
+            }
+
+        } catch (IOException e) {
+            System.err.println("Failed to load prescriptions.csv: " + e.getMessage());
         }
     }
 
-    /* =====================================================
-       CRUD OPERATIONS
-       ===================================================== */
+    private String get(String[] row, Map<String, Integer> index, String key) {
+        Integer i = index.get(key);
+        return (i != null && i < row.length) ? row[i].trim() : "";
+    }
 
     public List<Prescription> getAll() {
         return prescriptions;
     }
-    
-    private static final String OUTPUT_DIR = "output/prescriptions";
-
-    private void writePrescriptionFile(Prescription p) throws IOException {
-
-        File dir = new File(OUTPUT_DIR);
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        File file = new File(dir, "prescription_" + p.getPrescriptionId() + ".txt");
-
-        try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-            pw.println("Prescription ID: " + p.getPrescriptionId());
-            pw.println("Patient NHS: " + p.getPatientNhsNumber());
-            pw.println("Clinician ID: " + p.getClinicianId());
-            pw.println("Medication: " + p.getMedication());
-            pw.println("Dosage: " + p.getDosage());
-            pw.println("Pharmacy: " + p.getPharmacy());
-            pw.println("Status: " + p.getCollectionStatus());
-        }
-    }
-
-    private void writeAll() throws IOException {
-
-        try (PrintWriter pw = new PrintWriter(new FileWriter("data/prescriptions.csv"))) {
-
-            pw.println("prescriptionId,patientNhsNumber,clinicianId,medication,dosage,pharmacy,collectionStatus");
-
-            for (Prescription p : prescriptions) {
-                pw.println(String.join(",",
-                        p.getPrescriptionId(),
-                        p.getPatientNhsNumber(),
-                        p.getClinicianId(),
-                        p.getMedication(),
-                        p.getDosage(),
-                        p.getPharmacy(),
-                        p.getCollectionStatus()));
-            }
-        }
-    }
 
     public void addPrescription(Prescription p) throws IOException {
         prescriptions.add(p);
-        writeAll(); // CSV
-        writePrescriptionFile(p); // TXT
+        writeAll();
     }
 
-    public void updatePrescription(Prescription updated) throws IOException {
-        for (int i = 0; i < prescriptions.size(); i++) {
-            if (prescriptions.get(i).getPrescriptionId()
-                    .equals(updated.getPrescriptionId())) {
-                prescriptions.set(i, updated);
-                break;
-            }
-        }
-        save("data/prescriptions.csv");
+    public void updateAll() throws IOException {
+        writeAll();
     }
 
-    public void deletePrescription(String prescriptionId) throws IOException {
-        prescriptions.removeIf(p ->
-                p.getPrescriptionId().equals(prescriptionId));
-        save("data/prescriptions.csv");
+    public void deletePrescription(int index) throws IOException {
+        prescriptions.remove(index);
+        writeAll();
     }
 
-    /* =====================================================
-       SAVE TO CSV
-       ===================================================== */
+    private void writeAll() throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
 
-    private void save(String filePath) throws IOException {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-
-            writer.println("prescriptionId,patientNhsNumber,clinicianId,medication,dosage,pharmacy,collectionStatus");
+            pw.println(String.join(",",
+                    "prescription_id", "patient_id", "clinician_id", "appointment_id",
+                    "prescription_date", "medication_name", "dosage", "frequency",
+                    "duration_days", "quantity", "instructions", "pharmacy_name",
+                    "status", "issue_date", "collection_date"));
 
             for (Prescription p : prescriptions) {
-                writer.println(
-                        p.getPrescriptionId() + "," +
-                        p.getPatientNhsNumber() + "," +
-                        p.getClinicianId() + "," +
-                        p.getMedication() + "," +
-                        p.getDosage() + "," +
-                        p.getPharmacy() + "," +
-                        p.getCollectionStatus()
-                );
+                pw.println(String.join(",",
+                        CsvUtil.escape(p.getPrescriptionId()),
+                        CsvUtil.escape(p.getPatientId()),
+                        CsvUtil.escape(p.getClinicianId()),
+                        CsvUtil.escape(p.getAppointmentId()),
+                        CsvUtil.escape(p.getPrescriptionDate()),
+                        CsvUtil.escape(p.getMedicationName()),
+                        CsvUtil.escape(p.getDosage()),
+                        CsvUtil.escape(p.getFrequency()),
+                        CsvUtil.escape(p.getDurationDays()),
+                        CsvUtil.escape(p.getQuantity()),
+                        CsvUtil.escape(p.getInstructions()),
+                        CsvUtil.escape(p.getPharmacyName()),
+                        CsvUtil.escape(p.getStatus()),
+                        CsvUtil.escape(p.getIssueDate()),
+                        CsvUtil.escape(p.getCollectionDate())));
             }
         }
     }

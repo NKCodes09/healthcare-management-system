@@ -1,152 +1,113 @@
 package model;
 
-/**
- * Prescription
- * ------------
- * Domain model representing a medical prescription.
- *
- * This class belongs to the MODEL layer in the MVC architecture.
- * Its responsibility is to:
- *  - Store prescription data
- *  - Provide getters (and setters if needed)
- *
- * IMPORTANT:
- *  - NO file I/O
- *  - NO GUI logic
- *  - NO business rules
- *
- * The structure of this class aligns directly with:
- *  - prescriptions.csv
- *  - PrescriptionRepository
- *  - MainFrame (GUI table)
- */
 public class Prescription {
 
-    /* =========================
-       CORE PRESCRIPTION FIELDS
-       ========================= */
-
-    /** Unique identifier for the prescription (e.g. RX001) */
     private String prescriptionId;
-
-    /** NHS number of the patient receiving the prescription */
-    private String patientNhsNumber;
-
-    /** Clinician ID who issued the prescription */
+    private String patientId;
     private String clinicianId;
-
-    /**
-     * Medication name or code.
-     * IMPORTANT:
-     *  - This is called "medication" (NOT medicationName)
-     *  - MainFrame MUST call getMedication()
-     */
-    private String medication;
-
-    /** Dosage instructions (e.g. 20mg, 500mg, 400mcg) */
+    private String appointmentId;
+    private String prescriptionDate;
+    private String medicationName;
     private String dosage;
+    private String frequency;
+    private String durationDays;
+    private String quantity;
+    private String instructions;
+    private String pharmacyName;
+    private String status;
+    private String issueDate;
+    private String collectionDate;
 
-    /** Pharmacy where prescription is collected (e.g. Boots Pharmacy) */
-    private String pharmacy;
-
-    /** Collection status (e.g. Pending, Collected, Issued) */
-    private String collectionStatus;
-
-    /* =========================
-       CONSTRUCTOR
-       ========================= */
-
-    /**
-     * Full constructor.
-     *
-     * This constructor matches:
-     *  - CSV column order
-     *  - Repository creation
-     *  - GUI creation/editing
-     */
     public Prescription(
             String prescriptionId,
-            String patientNhsNumber,
+            String patientId,
             String clinicianId,
-            String medication,
+            String appointmentId,
+            String prescriptionDate,
+            String medicationName,
             String dosage,
-            String pharmacy,
-            String collectionStatus
-    ) {
+            String frequency,
+            String durationDays,
+            String quantity,
+            String instructions,
+            String pharmacyName,
+            String status,
+            String issueDate,
+            String collectionDate) {
         this.prescriptionId = prescriptionId;
-        this.patientNhsNumber = patientNhsNumber;
+        this.patientId = patientId;
         this.clinicianId = clinicianId;
-        this.medication = medication;
+        this.appointmentId = appointmentId;
+        this.prescriptionDate = prescriptionDate;
+        this.medicationName = medicationName;
         this.dosage = dosage;
-        this.pharmacy = pharmacy;
-        this.collectionStatus = collectionStatus;
+        this.frequency = frequency;
+        this.durationDays = durationDays;
+        this.quantity = quantity;
+        this.instructions = instructions;
+        this.pharmacyName = pharmacyName;
+        this.status = status;
+        this.issueDate = issueDate;
+        this.collectionDate = collectionDate;
     }
-
-    /* =========================
-       GETTERS
-       ========================= */
 
     public String getPrescriptionId() {
         return prescriptionId;
     }
 
-    public String getPatientNhsNumber() {
-        return patientNhsNumber;
+    public String getPatientId() {
+        return patientId;
     }
 
     public String getClinicianId() {
         return clinicianId;
     }
 
-    /**
-     * Getter used by MainFrame.
-     * DO NOT rename unless you update MainFrame too.
-     */
-    public String getMedication() {
-        return medication;
+    public String getAppointmentId() {
+        return appointmentId;
+    }
+
+    public String getPrescriptionDate() {
+        return prescriptionDate;
+    }
+
+    public String getMedicationName() {
+        return medicationName;
     }
 
     public String getDosage() {
         return dosage;
     }
 
-    public String getPharmacy() {
-        return pharmacy;
+    public String getFrequency() {
+        return frequency;
     }
 
-    public String getCollectionStatus() {
-        return collectionStatus;
+    public String getDurationDays() {
+        return durationDays;
     }
 
-    /* =========================
-       SETTERS (OPTIONAL)
-       =========================
-       These are useful for editing prescriptions
-       via the GUI (Edit button).
-     */
-
-    public void setMedication(String medication) {
-        this.medication = medication;
+    public String getQuantity() {
+        return quantity;
     }
 
-    public void setDosage(String dosage) {
-        this.dosage = dosage;
+    public String getInstructions() {
+        return instructions;
     }
 
-    public void setPharmacy(String pharmacy) {
-        this.pharmacy = pharmacy;
+    public String getPharmacyName() {
+        return pharmacyName;
     }
 
-    public void setCollectionStatus(String collectionStatus) {
-        this.collectionStatus = collectionStatus;
+    public String getStatus() {
+        return status;
     }
 
-    /* =========================
-       DEBUG / DISPLAY
-       ========================= */
+    public String getIssueDate() {
+        return issueDate;
+    }
 
-    @Override
-    public String toString() {
-        return prescriptionId + " | " + medication + " | " + dosage;
+    public String getCollectionDate() {
+        return collectionDate;
     }
 }

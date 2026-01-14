@@ -8,11 +8,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class ClinicianPanel extends JPanel {
 
     private final ClinicianRepository repository;
-    private final DefaultTableModel tableModel;
+    private final DefaultTableModel model;
     private final JTable table;
 
     public ClinicianPanel() {
@@ -20,32 +22,24 @@ public class ClinicianPanel extends JPanel {
         repository = new ClinicianRepository();
         setLayout(new BorderLayout());
 
-        tableModel = new DefaultTableModel(new String[] {
-                "Clinician ID",
-                "First Name",
-                "Last Name",
-                "Title",
-                "Speciality",
-                "GMC Number",
-                "Phone Number",
-                "Email",
-                "Workplace ID",
-                "Workplace Type",
-                "Employment Status",
-                "Start Date"
+        model = new DefaultTableModel(new String[] {
+                "Clinician ID", "First Name", "Last Name", "Title", "Speciality",
+                "GMC Number", "Phone", "Email",
+                "Workplace ID", "Workplace Type",
+                "Employment Status", "Start Date"
         }, 0);
 
-        table = new JTable(tableModel);
+        table = new JTable(model);
         loadClinicians();
 
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(createButtons(), BorderLayout.SOUTH);
+        add(buttons(), BorderLayout.SOUTH);
     }
 
     /* ---------------- Buttons ---------------- */
 
-    private JPanel createButtons() {
-        JPanel panel = new JPanel();
+    private JPanel buttons() {
+        JPanel p = new JPanel();
 
         JButton add = new JButton("Add");
         JButton edit = new JButton("Edit");
@@ -55,19 +49,19 @@ public class ClinicianPanel extends JPanel {
         edit.addActionListener(e -> editClinician());
         delete.addActionListener(e -> deleteClinician());
 
-        panel.add(add);
-        panel.add(edit);
-        panel.add(delete);
+        p.add(add);
+        p.add(edit);
+        p.add(delete);
 
-        return panel;
+        return p;
     }
 
-    /* ---------------- Load Table ---------------- */
+    /* ---------------- Load ---------------- */
 
     private void loadClinicians() {
-        tableModel.setRowCount(0);
+        model.setRowCount(0);
         for (Clinician c : repository.getAll()) {
-            tableModel.addRow(new Object[] {
+            model.addRow(new Object[] {
                     c.getClinicianId(),
                     c.getFirstName(),
                     c.getLastName(),
@@ -88,13 +82,14 @@ public class ClinicianPanel extends JPanel {
 
     private void addClinician() {
         ClinicianForm form = new ClinicianForm(null);
-        if (form.showDialog()) {
-            try {
-                repository.addClinician(form.getClinician());
-                loadClinicians();
-            } catch (IOException ex) {
-                showError(ex.getMessage());
-            }
+        if (!form.showDialog())
+            return;
+
+        try {
+            repository.addClinician(form.getClinician());
+            loadClinicians();
+        } catch (IOException ex) {
+            showError(ex.getMessage());
         }
     }
 
@@ -105,15 +100,35 @@ public class ClinicianPanel extends JPanel {
             return;
         }
 
-        ClinicianForm form = new ClinicianForm(repository.getAll().get(row));
-        if (form.showDialog()) {
-            repository.getAll().set(row, form.getClinician());
-            try {
-                repository.updateAll();
-                loadClinicians();
-            } catch (IOException ex) {
-                showError(ex.getMessage());
-            }
+        Clinician existing = repository.getAll().get(row);
+        ClinicianForm form = new ClinicianForm(existing);
+
+        if (!form.showDialog())
+            return;
+
+        Clinician updated = form.getClinician();
+
+        Clinician fixed = new Clinician(
+                existing.getClinicianId(),
+                updated.getFirstName(),
+                updated.getLastName(),
+                updated.getTitle(),
+                updated.getSpeciality(),
+                updated.getGmcNumber(),
+                updated.getPhoneNumber(),
+                updated.getEmail(),
+                updated.getWorkplaceId(),
+                updated.getWorkplaceType(),
+                updated.getEmploymentStatus(),
+                updated.getStartDate());
+
+        repository.getAll().set(row, fixed);
+
+        try {
+            repository.updateAll();
+            loadClinicians();
+        } catch (IOException ex) {
+            showError(ex.getMessage());
         }
     }
 
@@ -124,13 +139,11 @@ public class ClinicianPanel extends JPanel {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(
+        if (JOptionPane.showConfirmDialog(
                 this,
                 "Delete selected clinician?",
-                "Confirm Delete",
-                JOptionPane.YES_NO_OPTION);
-
-        if (confirm == JOptionPane.YES_OPTION) {
+                "Confirm",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             try {
                 repository.deleteClinician(row);
                 loadClinicians();
@@ -140,25 +153,15 @@ public class ClinicianPanel extends JPanel {
         }
     }
 
-    /* ---------------- Helpers ---------------- */
-
     private void showError(String msg) {
-        JOptionPane.showMessageDialog(
-                this,
-                msg,
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    /*
-     * ======================================================
-     * CLINICIAN FORM
-     * ======================================================
-     */
+    /* ===================== CLINICIAN FORM ===================== */
 
     private static class ClinicianForm {
 
-        private final JTextField[] fields = new JTextField[11];
+        private final JTextField[] f = new JTextField[12];
         private final Clinician original;
 
         ClinicianForm(Clinician c) {
@@ -170,134 +173,102 @@ public class ClinicianPanel extends JPanel {
             JPanel panel = new JPanel(new GridLayout(0, 2, 6, 6));
 
             String[] labels = {
-                    "Clinician ID",
-                    "First Name",
-                    "Last Name",
-                    "Title",
-                    "Speciality",
-                    "GMC / NMC Number",
-                    "Phone Number",
-                    "Email",
-                    "Workplace ID",
-                    "Workplace Type",
-                    "Employment Status"
+                    "Clinician ID", "First Name", "Last Name", "Title", "Speciality",
+                    "GMC Number", "Phone", "Email",
+                    "Workplace ID", "Workplace Type",
+                    "Employment Status", "Start Date (YYYY-M-D)"
             };
 
-            for (int i = 0; i < fields.length; i++) {
-                fields[i] = new JTextField();
+            for (int i = 0; i < f.length; i++) {
+                f[i] = new JTextField();
                 panel.add(new JLabel(labels[i]));
-                panel.add(fields[i]);
+                panel.add(f[i]);
             }
 
             if (original != null) {
-                fields[0].setText(original.getClinicianId());
-                fields[1].setText(original.getFirstName());
-                fields[2].setText(original.getLastName());
-                fields[3].setText(original.getTitle());
-                fields[4].setText(original.getSpeciality());
-                fields[5].setText(original.getGmcNumber());
-                fields[6].setText(original.getPhoneNumber());
-                fields[7].setText(original.getEmail());
-                fields[8].setText(original.getWorkplaceId());
-                fields[9].setText(original.getWorkplaceType());
-                fields[10].setText(original.getEmploymentStatus());
+                f[0].setText(original.getClinicianId());
+                f[1].setText(original.getFirstName());
+                f[2].setText(original.getLastName());
+                f[3].setText(original.getTitle());
+                f[4].setText(original.getSpeciality());
+                f[5].setText(original.getGmcNumber());
+                f[6].setText(original.getPhoneNumber());
+                f[7].setText(original.getEmail());
+                f[8].setText(original.getWorkplaceId());
+                f[9].setText(original.getWorkplaceType());
+                f[10].setText(original.getEmploymentStatus());
+                f[11].setText(original.getStartDate());
+
+                f[0].setEditable(false);
             }
 
             while (true) {
                 int result = JOptionPane.showConfirmDialog(
-                        null,
-                        panel,
-                        "Clinician Details",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.PLAIN_MESSAGE);
+                        null, panel,
+                        original == null ? "Add Clinician" : "Edit Clinician",
+                        JOptionPane.OK_CANCEL_OPTION);
 
-                if (result != JOptionPane.OK_OPTION) {
+                if (result != JOptionPane.OK_OPTION)
                     return false;
-                }
-
-                if (validateInputs()) {
+                if (validate())
                     return true;
-                }
             }
         }
 
-        /* ================= VALIDATION ================= */
+        private boolean validate() {
 
-        private boolean validateInputs() {
-
-            // Required fields
-            if (fields[0].getText().trim().isEmpty()) {
-                error("Clinician ID is required.");
+            if (!(f[5].getText().matches("\\d{7}") || f[5].getText().matches("N\\d{6}"))) {
+                error("Invalid GMC/NMC number.");
                 return false;
             }
 
-            if (fields[1].getText().trim().isEmpty()
-                    || fields[2].getText().trim().isEmpty()) {
-                error("First name and last name are required.");
+            if (!f[6].getText().matches("\\d{10,11}")) {
+                error("Invalid phone number.");
                 return false;
             }
 
-            // GMC / NMC number
-            String gmc = fields[5].getText().trim();
-            if (!(gmc.matches("\\d{7}") || gmc.matches("N\\d{6}"))) {
-                error("GMC number must be 7 digits (doctor) or N###### (nurse).");
+            if (!f[7].getText().contains("@")) {
+                error("Invalid email address.");
                 return false;
             }
 
-            // Phone number
-            if (!fields[6].getText().trim().matches("\\d{10,11}")) {
-                error("Phone number must be 10 or 11 digits.");
-                return false;
-            }
-
-            // Email
-            String email = fields[7].getText().trim();
-            if (!email.contains("@") || !email.contains(".")) {
-                error("Enter a valid email address.");
-                return false;
-            }
-
-            // Workplace ID
-            if (fields[8].getText().trim().isEmpty()) {
-                error("Workplace ID is required (e.g. S001 or H001).");
-                return false;
-            }
-
-            // Employment status
-            if (fields[10].getText().trim().isEmpty()) {
-                error("Employment status is required.");
+            if (parseDate(f[11].getText()) == null) {
+                error("Invalid start date.");
                 return false;
             }
 
             return true;
         }
 
-        private void error(String msg) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    msg,
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
+        private LocalDate parseDate(String input) {
+            try {
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-M-d");
+                return LocalDate.parse(input.trim(), fmt);
+            } catch (DateTimeParseException e) {
+                return null;
+            }
         }
 
-        /* ================= CREATE OBJECT ================= */
+        private void error(String msg) {
+            JOptionPane.showMessageDialog(null, msg, "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }
 
         Clinician getClinician() {
+            LocalDate startDate = parseDate(f[11].getText());
+
             return new Clinician(
-                    fields[0].getText().trim(),
-                    fields[1].getText().trim(),
-                    fields[2].getText().trim(),
-                    fields[3].getText().trim(),
-                    fields[4].getText().trim(),
-                    fields[5].getText().trim(),
-                    fields[6].getText().trim(),
-                    fields[7].getText().trim(),
-                    fields[8].getText().trim(),
-                    fields[9].getText().trim(),
-                    fields[10].getText().trim(),
-                    LocalDate.now().toString() // start_date auto
-            );
+                    f[0].getText().trim(),
+                    f[1].getText().trim(),
+                    f[2].getText().trim(),
+                    f[3].getText().trim(),
+                    f[4].getText().trim(),
+                    f[5].getText().trim(),
+                    f[6].getText().trim(),
+                    f[7].getText().trim(),
+                    f[8].getText().trim(),
+                    f[9].getText().trim(),
+                    f[10].getText().trim(),
+                    startDate.toString());
         }
     }
-
 }
