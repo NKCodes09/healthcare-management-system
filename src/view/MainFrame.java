@@ -8,7 +8,7 @@ public class MainFrame extends JFrame {
     public MainFrame() {
 
         setTitle("Healthcare Referral System | Student ID: 25001300");
-        setSize(1300, 700);
+        setSize(1500, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());

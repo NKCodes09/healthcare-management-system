@@ -1,135 +1,173 @@
 package view;
 
 import model.Referral;
-import repository.ReferralRepository;
 import repository.ReferralManager;
+import repository.ReferralRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.IOException;
+import java.time.LocalDate;
 
 public class ReferralPanel extends JPanel {
 
-    private final ReferralRepository repository;
+    private final ReferralRepository repository = new ReferralRepository();
+    private final ReferralManager manager = ReferralManager.getInstance();
+
+    private final DefaultTableModel tableModel;
     private final JTable table;
-    private final DefaultTableModel model;
 
     public ReferralPanel() {
 
         setLayout(new BorderLayout());
-        repository = new ReferralRepository();
 
-        model = new DefaultTableModel(
-                new String[] {
-                        "Referral ID",
-                        "Patient ID",
-                        "Clinician ID",
-                        "Date",
-                        "Urgency",
-                        "Status"
-                }, 0);
+        String[] columns = {
+                "Referral ID", "Patient ID", "Referring Clinician", "Referred Clinician",
+                "Referring Facility", "Referred Facility", "Referral Date", "Urgency",
+                "Reason", "Clinical Summary", "Investigations", "Status",
+                "Appointment ID", "Notes", "Created Date", "Last Updated"
+        };
 
-        table = new JTable(model);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        tableModel = new DefaultTableModel(columns, 0);
+        table = new JTable(tableModel);
 
-        JButton create = new JButton("Create Referral (Singleton)");
-        JButton edit = new JButton("Update Status");
-        JButton delete = new JButton("Delete");
-
-        create.addActionListener(e -> createReferral());
-        edit.addActionListener(e -> editReferral());
-        delete.addActionListener(e -> deleteReferral());
+        loadData();
 
         JPanel buttons = new JPanel();
-        buttons.add(create);
-        buttons.add(edit);
-        buttons.add(delete);
 
+        JButton addBtn = new JButton("Add");
+        JButton editBtn = new JButton("Edit");
+        JButton deleteBtn = new JButton("Delete");
+
+        buttons.add(addBtn);
+        buttons.add(editBtn);
+        buttons.add(deleteBtn);
+
+        add(new JScrollPane(table), BorderLayout.CENTER);
         add(buttons, BorderLayout.SOUTH);
 
-        loadReferrals();
+        addBtn.addActionListener(e -> addReferral());
+        editBtn.addActionListener(e -> editReferral());
+        deleteBtn.addActionListener(e -> deleteReferral());
     }
 
-    private void loadReferrals() {
-        model.setRowCount(0);
+    private void loadData() {
+
+        tableModel.setRowCount(0);
 
         for (Referral r : repository.getAll()) {
-            model.addRow(new Object[] {
+            tableModel.addRow(new Object[] {
                     r.getReferralId(),
                     r.getPatientId(),
                     r.getReferringClinicianId(),
+                    r.getReferredToClinicianId(),
+                    r.getReferringFacilityId(),
+                    r.getReferredToFacilityId(),
                     r.getReferralDate(),
                     r.getUrgencyLevel(),
-                    r.getStatus()
+                    r.getReferralReason(),
+                    r.getClinicalSummary(),
+                    r.getRequestedInvestigations(),
+                    r.getStatus(),
+                    r.getAppointmentId(),
+                    r.getNotes(),
+                    r.getCreatedDate(),
+                    r.getLastUpdated()
             });
         }
     }
 
-    private void createReferral() {
-        try {
-            Referral r = new Referral(
-                    JOptionPane.showInputDialog(this, "Referral ID"),
-                    JOptionPane.showInputDialog(this, "Patient ID"),
-                    JOptionPane.showInputDialog(this, "Referring Clinician ID"),
-                    JOptionPane.showInputDialog(this, "Referral Date (YYYY-MM-DD)"),
-                    JOptionPane.showInputDialog(this, "Urgency Level"),
-                    JOptionPane.showInputDialog(this, "Referral Reason"),
-                    JOptionPane.showInputDialog(this, "Clinical Summary"),
-                    "New");
+    /* ================= ADD ================= */
 
-            ReferralManager.getInstance().processReferral(r, repository);
-            loadReferrals();
+    private void addReferral() {
 
-            JOptionPane.showMessageDialog(this, "Referral created successfully.");
+        ReferralFormDialog form = new ReferralFormDialog(null);
+        Referral r = form.showDialog(); // ✅ Patient-style form
 
-        } catch (Exception e) {
-            showError(e);
+        if (r != null) {
+            try {
+                manager.processReferral(r, repository); // ✅ Singleton
+                loadData();
+            } catch (IOException ex) {
+                showError(ex.getMessage());
+            }
         }
     }
+
+    /* ================= EDIT ================= */
 
     private void editReferral() {
 
         int row = table.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Select a referral first.");
+            showError("Select a referral to edit.");
             return;
         }
 
-        try {
-            String id = model.getValueAt(row, 0).toString();
-            String newStatus = JOptionPane.showInputDialog(
-                    this,
-                    "Update Status",
-                    model.getValueAt(row, 5));
+        Referral existing = repository.getAll().get(row);
 
-            if (newStatus == null || newStatus.trim().isEmpty())
-                return;
+        ReferralFormDialog form = new ReferralFormDialog(existing);
+        Referral updated = form.showDialog(); // ✅ same pattern as Patient
 
-            repository.updateStatus(id, newStatus);
-            loadReferrals();
+        if (updated != null) {
 
-        } catch (Exception e) {
-            showError(e);
+            Referral fixed = new Referral(
+                    updated.getReferralId(),
+                    updated.getPatientId(),
+                    updated.getReferringClinicianId(),
+                    updated.getReferredToClinicianId(),
+                    updated.getReferringFacilityId(),
+                    updated.getReferredToFacilityId(),
+                    updated.getReferralDate(),
+                    updated.getUrgencyLevel(),
+                    updated.getReferralReason(),
+                    updated.getClinicalSummary(),
+                    updated.getRequestedInvestigations(),
+                    updated.getStatus(),
+                    updated.getAppointmentId(),
+                    updated.getNotes(),
+                    updated.getCreatedDate(), // 🔒 keep created
+                    LocalDate.now().toString() // ✅ update timestamp
+            );
+
+            try {
+                repository.deleteReferral(row);
+                repository.addReferral(fixed);
+                loadData();
+            } catch (IOException ex) {
+                showError(ex.getMessage());
+            }
         }
     }
+
+    /* ================= DELETE ================= */
 
     private void deleteReferral() {
 
         int row = table.getSelectedRow();
-        if (row == -1)
+        if (row == -1) {
+            showError("Select a referral to delete.");
             return;
+        }
 
-        try {
-            String id = model.getValueAt(row, 0).toString();
-            repository.deleteReferral(id);
-            loadReferrals();
+        if (JOptionPane.showConfirmDialog(
+                this,
+                "Delete selected referral?",
+                "Confirm",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-        } catch (Exception e) {
-            showError(e);
+            try {
+                repository.deleteReferral(row);
+                loadData();
+            } catch (IOException ex) {
+                showError(ex.getMessage());
+            }
         }
     }
 
-    private void showError(Exception e) {
-        JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    private void showError(String msg) {
+        JOptionPane.showMessageDialog(this, msg,
+                "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
