@@ -1,96 +1,94 @@
 package repository;
 
 import model.Facility;
-
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * FacilityRepository
- * ------------------
- * Handles loading, adding, updating, and deleting facilities.
- * CSV-backed repository (MODEL layer).
- */
 public class FacilityRepository {
 
+    private static final String CSV_PATH = "data/facilities.csv";
     private final List<Facility> facilities = new ArrayList<>();
-    private String sourceFilePath;
+    private final List<String[]> rawRows = new ArrayList<>();
+    private String header;
 
-    /**
-     * Load facilities from CSV.
-     */
-    public void load(String filePath) throws IOException {
+    public FacilityRepository() {
+        load();
+    }
 
-        this.sourceFilePath = filePath;
+    private void load() {
         facilities.clear();
+        rawRows.clear();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
 
-            br.readLine(); // skip header
+            header = br.readLine();
+            if (header == null)
+                return;
+
+            String[] h = CsvUtil.splitCsvLine(header);
+            Map<String, Integer> idx = new HashMap<>();
+            for (int i = 0; i < h.length; i++)
+                idx.put(h[i], i);
+
             String line;
-
             while ((line = br.readLine()) != null) {
-                String[] cols = line.split(",", -1);
-                if (cols.length < 4) continue;
+
+                String[] c = CsvUtil.splitCsvLine(line);
+                rawRows.add(c);
 
                 facilities.add(new Facility(
-                        cols[0].trim(), // facilityId
-                        cols[1].trim(), // facilityName
-                        cols[2].trim(), // facilityType
-                        cols[3].trim()  // location
-                ));
+                        CsvUtil.get(c, idx.get("facility_id")),
+                        CsvUtil.get(c, idx.get("facility_name")),
+                        CsvUtil.get(c, idx.get("facility_type")),
+                        CsvUtil.get(c, idx.get("address")),
+                        CsvUtil.get(c, idx.get("postcode")),
+                        CsvUtil.get(c, idx.get("phone_number")),
+                        CsvUtil.get(c, idx.get("email")),
+                        CsvUtil.get(c, idx.get("opening_hours")),
+                        CsvUtil.get(c, idx.get("manager_name")),
+                        CsvUtil.get(c, idx.get("capacity")),
+                        CsvUtil.get(c, idx.get("specialities_offered"))));
             }
+        } catch (IOException e) {
+            System.err.println("Failed to load facilities.csv");
         }
     }
 
     public List<Facility> getAll() {
-        return new ArrayList<>(facilities);
+        return facilities;
     }
 
-    public void addFacility(Facility facility) throws IOException {
-        facilities.add(facility);
-        saveToCsv();
+    public void add(Facility f) throws IOException {
+        facilities.add(f);
+        rawRows.add(new String[] {
+                f.getFacilityId(), f.getFacilityName(), f.getFacilityType(),
+                f.getAddress(), f.getPostcode(), f.getPhoneNumber(),
+                f.getEmail(), f.getOpeningHours(), f.getManagerName(),
+                f.getCapacity(), f.getSpecialitiesOffered()
+        });
+        writeAll();
     }
 
-    public void updateFacility(Facility updated) throws IOException {
-        for (int i = 0; i < facilities.size(); i++) {
-            if (facilities.get(i).getFacilityId().equalsIgnoreCase(updated.getFacilityId())) {
-                facilities.set(i, updated);
-                saveToCsv();
-                return;
-            }
-        }
-        throw new IllegalArgumentException("Facility not found.");
+    public void updateAll() throws IOException {
+        writeAll();
     }
 
-    public void deleteFacility(String facilityId) throws IOException {
-        facilities.removeIf(f -> f.getFacilityId().equalsIgnoreCase(facilityId));
-        saveToCsv();
+    public void delete(int index) throws IOException {
+        facilities.remove(index);
+        rawRows.remove(index);
+        writeAll();
     }
 
-    /* ================= CSV SAVE ================= */
-
-    private void saveToCsv() throws IOException {
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(sourceFilePath))) {
-
-            writer.write("facilityId,facilityName,facilityType,location");
-            writer.newLine();
-
-            for (Facility f : facilities) {
-                writer.write(String.join(",",
-                        safe(f.getFacilityId()),
-                        safe(f.getFacilityName()),
-                        safe(f.getFacilityType()),
-                        safe(f.getLocation())
-                ));
-                writer.newLine();
+    private void writeAll() throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
+            pw.println(header);
+            for (String[] r : rawRows) {
+                for (int i = 0; i < r.length; i++)
+                    r[i] = CsvUtil.escape(r[i]);
+                pw.println(String.join(",", r));
             }
         }
     }
 
-    private String safe(String v) {
-        return v == null ? "" : v.replace(",", " ");
-    }
+    
 }

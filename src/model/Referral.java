@@ -20,22 +20,14 @@ public class Referral {
     private String lastUpdated;
 
     public Referral(
-            String referralId,
-            String patientId,
-            String referringClinicianId,
-            String referredToClinicianId,
-            String referringFacilityId,
-            String referredToFacilityId,
-            String referralDate,
-            String urgencyLevel,
-            String referralReason,
-            String clinicalSummary,
-            String requestedInvestigations,
-            String status,
-            String appointmentId,
-            String notes,
-            String createdDate,
-            String lastUpdated) {
+            String referralId, String patientId,
+            String referringClinicianId, String referredToClinicianId,
+            String referringFacilityId, String referredToFacilityId,
+            String referralDate, String urgencyLevel,
+            String referralReason, String clinicalSummary,
+            String requestedInvestigations, String status,
+            String appointmentId, String notes,
+            String createdDate, String lastUpdated) {
 
         this.referralId = referralId;
         this.patientId = patientId;
@@ -55,7 +47,6 @@ public class Referral {
         this.lastUpdated = lastUpdated;
     }
 
-    // ===== GETTERS =====
     public String getReferralId() {
         return referralId;
     }

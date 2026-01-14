@@ -1,89 +1,70 @@
 package repository;
 
 import model.Staff;
-
 import java.io.*;
 import java.util.*;
 
 public class StaffRepository {
 
     private static final String CSV_PATH = "data/staff.csv";
-
-    private final List<Staff> staffList = new ArrayList<>();
+    private final List<Staff> staff = new ArrayList<>();
     private final List<String[]> rawRows = new ArrayList<>();
-    private String originalHeader;
+    private String header;
 
     public StaffRepository() {
         load();
     }
 
     private void load() {
-
-        staffList.clear();
+        staff.clear();
         rawRows.clear();
 
         try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
-
-            originalHeader = br.readLine();
-            if (originalHeader == null)
+            header = br.readLine();
+            if (header == null)
                 return;
 
-            String[] headers = CsvUtil.splitCsvLine(originalHeader);
-            Map<String, Integer> index = new HashMap<>();
-
-            for (int i = 0; i < headers.length; i++) {
-                index.put(headers[i], i);
-            }
+            String[] h = CsvUtil.splitCsvLine(header);
+            Map<String, Integer> idx = new HashMap<>();
+            for (int i = 0; i < h.length; i++)
+                idx.put(h[i], i);
 
             String line;
             while ((line = br.readLine()) != null) {
-
                 String[] c = CsvUtil.splitCsvLine(line);
                 rawRows.add(c);
 
-                staffList.add(new Staff(
-                        CsvUtil.get(c, index.get("staff_id")),
-                        CsvUtil.get(c, index.get("first_name")),
-                        CsvUtil.get(c, index.get("last_name")),
-                        CsvUtil.get(c, index.get("role")),
-                        CsvUtil.get(c, index.get("department")),
-                        CsvUtil.get(c, index.get("facility_id")),
-                        CsvUtil.get(c, index.get("phone_number")),
-                        CsvUtil.get(c, index.get("email")),
-                        CsvUtil.get(c, index.get("employment_status")),
-                        CsvUtil.get(c, index.get("start_date")),
-                        CsvUtil.get(c, index.get("line_manager")),
-                        CsvUtil.get(c, index.get("access_level"))));
+                staff.add(new Staff(
+                        CsvUtil.get(c, idx.get("staff_id")),
+                        CsvUtil.get(c, idx.get("first_name")),
+                        CsvUtil.get(c, idx.get("last_name")),
+                        CsvUtil.get(c, idx.get("role")),
+                        CsvUtil.get(c, idx.get("department")),
+                        CsvUtil.get(c, idx.get("facility_id")),
+                        CsvUtil.get(c, idx.get("phone_number")),
+                        CsvUtil.get(c, idx.get("email")),
+                        CsvUtil.get(c, idx.get("employment_status")),
+                        CsvUtil.get(c, idx.get("start_date")),
+                        CsvUtil.get(c, idx.get("line_manager")),
+                        CsvUtil.get(c, idx.get("access_level"))));
             }
-
         } catch (IOException e) {
-            System.err.println("Failed to load staff.csv: " + e.getMessage());
+            System.err.println("Failed to load staff.csv");
         }
     }
 
     public List<Staff> getAll() {
-        return staffList;
+        return staff;
     }
 
-    public void addStaff(Staff s) throws IOException {
-
-        staffList.add(s);
-
-        String[] row = new String[originalHeader.split(",").length];
-        row[0] = s.getStaffId();
-        row[1] = s.getFirstName();
-        row[2] = s.getLastName();
-        row[3] = s.getRole();
-        row[4] = s.getDepartment();
-        row[5] = s.getFacilityId();
-        row[6] = s.getPhoneNumber();
-        row[7] = s.getEmail();
-        row[8] = s.getEmploymentStatus();
-        row[9] = s.getStartDate();
-        row[10] = s.getLineManager();
-        row[11] = s.getAccessLevel();
-
-        rawRows.add(row);
+    public void add(Staff s) throws IOException {
+        staff.add(s);
+        rawRows.add(new String[] {
+                s.getStaffId(), s.getFirstName(), s.getLastName(),
+                s.getRole(), s.getDepartment(), s.getFacilityId(),
+                s.getPhoneNumber(), s.getEmail(), s.getEmploymentStatus(),
+                s.getStartDate(), s.getLineManager(), s.getAccessLevel()
+        });
         writeAll();
     }
 
@@ -91,8 +72,8 @@ public class StaffRepository {
         writeAll();
     }
 
-    public void deleteStaff(int index) throws IOException {
-        staffList.remove(index);
+    public void delete(int index) throws IOException {
+        staff.remove(index);
         rawRows.remove(index);
         writeAll();
     }
@@ -101,25 +82,28 @@ public class StaffRepository {
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
 
-            pw.println(originalHeader);
+            pw.println(header);
 
             for (String[] row : rawRows) {
+
                 String[] safe = new String[row.length];
                 for (int i = 0; i < row.length; i++) {
                     safe[i] = csvSafe(row[i]);
                 }
+
                 pw.println(String.join(",", safe));
             }
         }
     }
 
-    private String csvSafe(String v) {
-        if (v == null)
+    private String csvSafe(String value) {
+        if (value == null)
             return "";
-        if (v.contains(",") || v.contains("\"")) {
-            v = v.replace("\"", "\"\"");
-            return "\"" + v + "\"";
+        if (value.contains(",") || value.contains("\"")) {
+            value = value.replace("\"", "\"\"");
+            return "\"" + value + "\"";
         }
-        return v;
+        return value;
     }
+
 }

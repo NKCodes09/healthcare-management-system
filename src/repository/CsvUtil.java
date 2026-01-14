@@ -46,4 +46,14 @@ public class CsvUtil {
 
         return cols[index].replace("\"", "").trim();
     }
+
+    public static String escape(String value) {
+        if (value == null)
+            return "";
+        if (value.contains(",") || value.contains("\"")) {
+            value = value.replace("\"", "\"\"");
+            return "\"" + value + "\"";
+        }
+        return value;
+    }
 }
