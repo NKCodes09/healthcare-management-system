@@ -14,9 +14,10 @@ public class AppointmentPanel extends JPanel {
 
     private final AppointmentRepository repo = new AppointmentRepository();
     private final DefaultTableModel model;
-    private final JTable table;
+    private  JTable table;
 
     public AppointmentPanel() {
+     
 
         setLayout(new BorderLayout());
 
@@ -28,7 +29,10 @@ public class AppointmentPanel extends JPanel {
 
         table = new JTable(model);
         load();
-
+        table.setRowHeight(24);
+        table.setSelectionBackground(new Color(220, 235, 250));
+        table.setSelectionForeground(Color.BLACK);
+        table.getTableHeader().setReorderingAllowed(false);
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(buttons(), BorderLayout.SOUTH);
     }

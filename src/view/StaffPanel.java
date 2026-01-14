@@ -13,9 +13,11 @@ public class StaffPanel extends JPanel {
 
     private final StaffRepository repo = new StaffRepository();
     private final DefaultTableModel model;
-    private final JTable table;
+    private  JTable table;
 
     public StaffPanel() {
+       
+
         setLayout(new BorderLayout());
 
         model = new DefaultTableModel(new String[] {
@@ -25,6 +27,10 @@ public class StaffPanel extends JPanel {
 
         table = new JTable(model);
         load();
+        table.setRowHeight(24);
+        table.setSelectionBackground(new Color(220, 235, 250));
+        table.setSelectionForeground(Color.BLACK);
+        table.getTableHeader().setReorderingAllowed(false);
 
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(buttons(), BorderLayout.SOUTH);

@@ -16,9 +16,10 @@ public class ReferralPanel extends JPanel {
     private final ReferralManager manager = ReferralManager.getInstance();
 
     private final DefaultTableModel model;
-    private final JTable table;
+    private  JTable table;
 
     public ReferralPanel() {
+      
 
         setLayout(new BorderLayout());
 
@@ -31,7 +32,10 @@ public class ReferralPanel extends JPanel {
 
         table = new JTable(model);
         load();
-
+        table.setRowHeight(24);
+        table.setSelectionBackground(new Color(220, 235, 250));
+        table.setSelectionForeground(Color.BLACK);
+        table.getTableHeader().setReorderingAllowed(false);
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(createButtons(), BorderLayout.SOUTH);
     }

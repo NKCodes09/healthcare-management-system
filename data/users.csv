@@ -2,4 +2,4 @@ username,password,role,linked_id
 admin,admin123,ADMIN,
 c001,pass123,CLINICIAN,C001
 st001,pass123,STAFF,ST001
-p001,pass123,PATIENT,P001
+p001,pass123,PATIENT,P001p001,pass123,PATIENT,P002

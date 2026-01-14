@@ -16,34 +16,24 @@ public class MainFrame extends JFrame {
 
         JTabbedPane tabs = new JTabbedPane();
 
-        /* ================= ROLE BASED ACCESS ================= */
-
-        // ===== PATIENT =====
         if (user.getRole().equals("PATIENT")) {
-
             tabs.addTab("Facilities", new FacilityPanel());
             tabs.addTab("Appointments", new AppointmentPanel());
         }
 
-        // ===== STAFF =====
         if (user.getRole().equals("STAFF")) {
-
             tabs.addTab("Patients", new PatientPanel());
             tabs.addTab("Facilities", new FacilityPanel());
             tabs.addTab("Appointments", new AppointmentPanel());
         }
 
-        // ===== CLINICIAN =====
         if (user.getRole().equals("CLINICIAN")) {
-
             tabs.addTab("Patients", new PatientPanel());
             tabs.addTab("Appointments", new AppointmentPanel());
             tabs.addTab("Referrals", new ReferralPanel());
         }
 
-        // ===== ADMIN =====
         if (user.getRole().equals("ADMIN")) {
-
             tabs.addTab("Patients", new PatientPanel());
             tabs.addTab("Clinicians", new ClinicianPanel());
             tabs.addTab("Staff", new StaffPanel());
@@ -53,25 +43,31 @@ public class MainFrame extends JFrame {
             tabs.addTab("Referrals", new ReferralPanel());
         }
 
-        add(tabs, BorderLayout.CENTER);
-
-        /* ================= TOP BAR ================= */
-
         JPanel top = new JPanel(new BorderLayout());
-        JLabel welcome = new JLabel(
-                "Logged in as: " + user.getUsername() + " (" + user.getRole() + ")");
 
-        welcome.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        top.add(welcome, BorderLayout.WEST);
+        JLabel title = new JLabel("Healthcare Management System");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        title.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+
+        JLabel userInfo = new JLabel(
+                "Logged in as: " + user.getUsername() +
+                        " (" + user.getRole() + ")");
+        userInfo.setBorder(
+                BorderFactory.createEmptyBorder(8, 10, 8, 10));
 
         JButton logout = new JButton("Logout");
-        top.add(logout, BorderLayout.EAST);
+        logout.setFocusPainted(false);
 
         logout.addActionListener(e -> {
             dispose();
             new LoginFrame().setVisible(true);
         });
 
+        top.add(title, BorderLayout.CENTER);
+        top.add(userInfo, BorderLayout.WEST);
+        top.add(logout, BorderLayout.EAST);
+
         add(top, BorderLayout.NORTH);
+        add(tabs, BorderLayout.CENTER);
     }
 }

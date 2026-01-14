@@ -15,9 +15,10 @@ public class ClinicianPanel extends JPanel {
 
     private final ClinicianRepository repository;
     private final DefaultTableModel model;
-    private final JTable table;
+    private  JTable table;
 
     public ClinicianPanel() {
+      
 
         repository = new ClinicianRepository();
         setLayout(new BorderLayout());
@@ -31,6 +32,10 @@ public class ClinicianPanel extends JPanel {
 
         table = new JTable(model);
         loadClinicians();
+        table.setRowHeight(24);
+        table.setSelectionBackground(new Color(220, 235, 250));
+        table.setSelectionForeground(Color.BLACK);
+        table.getTableHeader().setReorderingAllowed(false);
 
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(createButtons(), BorderLayout.SOUTH);
