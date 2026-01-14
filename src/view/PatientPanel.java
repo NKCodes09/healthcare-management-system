@@ -33,12 +33,12 @@ public class PatientPanel extends JPanel {
         loadPatients();
 
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(buttons(), BorderLayout.SOUTH);
+        add(createButtons(), BorderLayout.SOUTH);
     }
 
-    /* ================= Buttons ================= */
+    /* ================= BUTTONS ================= */
 
-    private JPanel buttons() {
+    private JPanel createButtons() {
         JPanel p = new JPanel();
 
         JButton add = new JButton("Add");
@@ -56,7 +56,7 @@ public class PatientPanel extends JPanel {
         return p;
     }
 
-    /* ================= Load ================= */
+    /* ================= LOAD ================= */
 
     private void loadPatients() {
         model.setRowCount(0);
@@ -111,7 +111,7 @@ public class PatientPanel extends JPanel {
         Patient updated = form.getPatient();
 
         Patient fixed = new Patient(
-                existing.getPatientId(),
+                existing.getPatientId(), // 🔒 ID locked
                 updated.getFirstName(),
                 updated.getLastName(),
                 updated.getDateOfBirth(),
@@ -123,9 +123,8 @@ public class PatientPanel extends JPanel {
                 updated.getPostcode(),
                 updated.getEmergencyContactName(),
                 updated.getEmergencyContactPhone(),
-                existing.getRegistrationDate(), // keep original
-                updated.getGpSurgeryId() // ✅ editable
-        );
+                existing.getRegistrationDate(),
+                updated.getGpSurgeryId());
 
         repository.getAll().set(row, fixed);
 
@@ -210,7 +209,7 @@ public class PatientPanel extends JPanel {
                 f[11].setText(original.getEmergencyContactPhone());
                 f[12].setText(original.getGpSurgeryId());
 
-                f[0].setEditable(false); // 🔒 ID locked
+                f[0].setEditable(false);
             }
 
             while (true) {
@@ -230,7 +229,23 @@ public class PatientPanel extends JPanel {
 
         private boolean validate() {
 
-            if (parseDate(f[3].getText()) == null) {
+            if (!f[0].getText().matches("P\\d{3}")) {
+                error("Patient ID must be in format P001.");
+                return false;
+            }
+
+            if (!f[1].getText().matches("[A-Za-z\\s]{2,}")) {
+                error("First name is invalid.");
+                return false;
+            }
+
+            if (!f[2].getText().matches("[A-Za-z\\s]{2,}")) {
+                error("Last name is invalid.");
+                return false;
+            }
+
+            LocalDate dob = parseDate(f[3].getText());
+            if (dob == null || dob.isAfter(LocalDate.now())) {
                 error("Invalid date of birth.");
                 return false;
             }
@@ -240,8 +255,33 @@ public class PatientPanel extends JPanel {
                 return false;
             }
 
+            if (!f[5].getText().matches("Male|Female|Other")) {
+                error("Gender must be Male, Female, or Other.");
+                return false;
+            }
+
             if (!f[6].getText().matches("\\d{10,11}")) {
                 error("Phone number must be 10–11 digits.");
+                return false;
+            }
+
+            if (!f[7].getText().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                error("Invalid email address.");
+                return false;
+            }
+
+            if (f[8].getText().trim().length() < 5) {
+                error("Address is required.");
+                return false;
+            }
+
+            if (!f[9].getText().matches("[A-Za-z0-9\\s]{5,8}")) {
+                error("Invalid postcode.");
+                return false;
+            }
+
+            if (!f[10].getText().matches("[A-Za-z\\s]{2,}")) {
+                error("Emergency contact name invalid.");
                 return false;
             }
 
@@ -250,8 +290,8 @@ public class PatientPanel extends JPanel {
                 return false;
             }
 
-            if (f[12].getText().trim().isEmpty()) {
-                error("GP Surgery ID is required.");
+            if (!f[12].getText().matches("S\\d{3}")) {
+                error("GP Surgery ID must be like S001.");
                 return false;
             }
 
