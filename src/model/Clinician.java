@@ -1,66 +1,92 @@
 package model;
 
-/**
- * Clinician
- * ---------
- * Domain model representing a clinician such as a doctor, nurse, or specialist.
- *
- * Clinicians may be associated with appointments, prescriptions, and referrals.
- */
 public class Clinician {
 
-    /** Unique identifier for the clinician */
     private String clinicianId;
+    private String firstName;
+    private String lastName;
+    private String title;
+    private String speciality;
+    private String gmcNumber;
+    private String phoneNumber;
+    private String email;
+    private String workplaceId;
+    private String workplaceType;
+    private String employmentStatus;
+    private String startDate;
 
-    /** Clinician's full name */
-    private String name;
-
-    /** Role (e.g. Doctor, Nurse, Specialist) */
-    private String role;
-
-    /** Medical specialty */
-    private String specialty;
-
-    /** Workplace (e.g. hospital or GP surgery) */
-    private String workplace;
-
-    /**
-     * Constructs a Clinician object.
-     */
-    public Clinician(String clinicianId,
-                     String name,
-                     String role,
-                     String specialty,
-                     String workplace) {
+    public Clinician(
+            String clinicianId,
+            String firstName,
+            String lastName,
+            String title,
+            String speciality,
+            String gmcNumber,
+            String phoneNumber,
+            String email,
+            String workplaceId,
+            String workplaceType,
+            String employmentStatus,
+            String startDate) {
         this.clinicianId = clinicianId;
-        this.name = name;
-        this.role = role;
-        this.specialty = specialty;
-        this.workplace = workplace;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.title = title;
+        this.speciality = speciality;
+        this.gmcNumber = gmcNumber;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.workplaceId = workplaceId;
+        this.workplaceType = workplaceType;
+        this.employmentStatus = employmentStatus;
+        this.startDate = startDate;
     }
 
     public String getClinicianId() {
         return clinicianId;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public String getRole() {
-        return role;
+    public String getLastName() {
+        return lastName;
     }
 
-    public String getSpecialty() {
-        return specialty;
+    public String getTitle() {
+        return title;
     }
 
-    public String getWorkplace() {
-        return workplace;
+    public String getSpeciality() {
+        return speciality;
     }
 
-    @Override
-    public String toString() {
-        return name + " (" + specialty + ")";
+    public String getGmcNumber() {
+        return gmcNumber;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getWorkplaceId() {
+        return workplaceId;
+    }
+
+    public String getWorkplaceType() {
+        return workplaceType;
+    }
+
+    public String getEmploymentStatus() {
+        return employmentStatus;
+    }
+
+    public String getStartDate() {
+        return startDate;
     }
 }
