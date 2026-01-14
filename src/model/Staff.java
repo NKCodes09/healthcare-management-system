@@ -1,33 +1,58 @@
 package model;
 
-/**
- * Staff
- * -----
- * Domain model representing a staff member.
- *
- * This is a simple DATA class (Model layer).
- * No logic, only fields + getters.
- */
 public class Staff {
 
     private String staffId;
-    private String name;
+    private String firstName;
+    private String lastName;
     private String role;
     private String department;
+    private String facilityId;
+    private String phoneNumber;
+    private String email;
+    private String employmentStatus;
+    private String startDate;
+    private String lineManager;
+    private String accessLevel;
 
-    public Staff(String staffId, String name, String role, String department) {
+    public Staff(
+            String staffId,
+            String firstName,
+            String lastName,
+            String role,
+            String department,
+            String facilityId,
+            String phoneNumber,
+            String email,
+            String employmentStatus,
+            String startDate,
+            String lineManager,
+            String accessLevel) {
+
         this.staffId = staffId;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.role = role;
         this.department = department;
+        this.facilityId = facilityId;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.employmentStatus = employmentStatus;
+        this.startDate = startDate;
+        this.lineManager = lineManager;
+        this.accessLevel = accessLevel;
     }
 
     public String getStaffId() {
         return staffId;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
     }
 
     public String getRole() {
@@ -36,5 +61,33 @@ public class Staff {
 
     public String getDepartment() {
         return department;
+    }
+
+    public String getFacilityId() {
+        return facilityId;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getEmploymentStatus() {
+        return employmentStatus;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public String getLineManager() {
+        return lineManager;
+    }
+
+    public String getAccessLevel() {
+        return accessLevel;
     }
 }

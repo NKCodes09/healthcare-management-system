@@ -3,186 +3,123 @@ package repository;
 import model.Staff;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * StaffRepository
- * ---------------
- * Loads and persists Staff records from/to a CSV file.
- *
- * CSV expected format:
- * staffId,firstName,lastName,role,department
- *
- * GUI expected display:
- * Staff ID | Name (first + last) | Role | Department
- */
 public class StaffRepository {
 
-    /** In-memory storage of staff records */
+    private static final String CSV_PATH = "data/staff.csv";
+
     private final List<Staff> staffList = new ArrayList<>();
+    private final List<String[]> rawRows = new ArrayList<>();
+    private String originalHeader;
 
-    /** Path to the CSV file used for persistence */
-    private String sourceFilePath;
+    public StaffRepository() {
+        load();
+    }
 
-    /**
-     * Load staff records from CSV into memory.
-     * @param filePath path to staff.csv
-     */
-    public void load(String filePath) throws IOException {
-        this.sourceFilePath = filePath;
+    private void load() {
+
         staffList.clear();
+        rawRows.clear();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String header = br.readLine(); // skip header
-            if (header == null) return;
+        try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
+
+            originalHeader = br.readLine();
+            if (originalHeader == null)
+                return;
+
+            String[] headers = CsvUtil.splitCsvLine(originalHeader);
+            Map<String, Integer> index = new HashMap<>();
+
+            for (int i = 0; i < headers.length; i++) {
+                index.put(headers[i], i);
+            }
 
             String line;
             while ((line = br.readLine()) != null) {
 
-                // Skip completely empty lines (your files sometimes include these)
-                if (line.trim().isEmpty()) continue;
+                String[] c = CsvUtil.splitCsvLine(line);
+                rawRows.add(c);
 
-                String[] cols = line.split(",", -1);
-
-                // We expect 5 columns: id, first, last, role, dept
-                if (cols.length < 5) continue;
-
-                String staffId = cols[0].trim();
-                String firstName = cols[1].trim();
-                String lastName = cols[2].trim();
-                String role = cols[3].trim();
-                String department = cols[4].trim();
-
-                // GUI "Name" column = firstName + lastName
-                String fullName = (firstName + " " + lastName).trim();
-
-                Staff staff = new Staff(staffId, fullName, role, department);
-                staffList.add(staff);
+                staffList.add(new Staff(
+                        CsvUtil.get(c, index.get("staff_id")),
+                        CsvUtil.get(c, index.get("first_name")),
+                        CsvUtil.get(c, index.get("last_name")),
+                        CsvUtil.get(c, index.get("role")),
+                        CsvUtil.get(c, index.get("department")),
+                        CsvUtil.get(c, index.get("facility_id")),
+                        CsvUtil.get(c, index.get("phone_number")),
+                        CsvUtil.get(c, index.get("email")),
+                        CsvUtil.get(c, index.get("employment_status")),
+                        CsvUtil.get(c, index.get("start_date")),
+                        CsvUtil.get(c, index.get("line_manager")),
+                        CsvUtil.get(c, index.get("access_level"))));
             }
+
+        } catch (IOException e) {
+            System.err.println("Failed to load staff.csv: " + e.getMessage());
         }
     }
 
-    /**
-     * Return all staff as a defensive copy.
-     */
     public List<Staff> getAll() {
-        return new ArrayList<>(staffList);
+        return staffList;
     }
 
-    /**
-     * Add new staff record and persist to CSV.
-     */
-    public void addStaff(Staff staff) throws IOException {
-        if (staff == null || staff.getStaffId() == null || staff.getStaffId().isBlank()) {
-            throw new IllegalArgumentException("Staff ID is required.");
-        }
+    public void addStaff(Staff s) throws IOException {
 
-        // Prevent duplicate IDs
-        if (findById(staff.getStaffId()) != null) {
-            throw new IllegalArgumentException("Staff ID already exists: " + staff.getStaffId());
-        }
+        staffList.add(s);
 
-        staffList.add(staff);
-        saveToCsv();
+        String[] row = new String[originalHeader.split(",").length];
+        row[0] = s.getStaffId();
+        row[1] = s.getFirstName();
+        row[2] = s.getLastName();
+        row[3] = s.getRole();
+        row[4] = s.getDepartment();
+        row[5] = s.getFacilityId();
+        row[6] = s.getPhoneNumber();
+        row[7] = s.getEmail();
+        row[8] = s.getEmploymentStatus();
+        row[9] = s.getStartDate();
+        row[10] = s.getLineManager();
+        row[11] = s.getAccessLevel();
+
+        rawRows.add(row);
+        writeAll();
     }
 
-    /**
-     * Update existing staff record (matched by staffId) and persist.
-     */
-    public void updateStaff(Staff updated) throws IOException {
-        if (updated == null || updated.getStaffId() == null || updated.getStaffId().isBlank()) {
-            throw new IllegalArgumentException("Staff ID is required.");
-        }
-
-        for (int i = 0; i < staffList.size(); i++) {
-            if (staffList.get(i).getStaffId().equalsIgnoreCase(updated.getStaffId())) {
-                staffList.set(i, updated);
-                saveToCsv();
-                return;
-            }
-        }
-
-        throw new IllegalArgumentException("Staff not found: " + updated.getStaffId());
+    public void updateAll() throws IOException {
+        writeAll();
     }
 
-    /**
-     * Delete staff by staffId and persist.
-     */
-    public void deleteStaff(String staffId) throws IOException {
-        boolean removed = staffList.removeIf(s -> s.getStaffId().equalsIgnoreCase(staffId));
-        if (!removed) throw new IllegalArgumentException("Staff not found: " + staffId);
-        saveToCsv();
+    public void deleteStaff(int index) throws IOException {
+        staffList.remove(index);
+        rawRows.remove(index);
+        writeAll();
     }
 
-    /**
-     * Find a staff record by ID.
-     */
-    public Staff findById(String staffId) {
-        for (Staff s : staffList) {
-            if (s.getStaffId().equalsIgnoreCase(staffId)) return s;
-        }
-        return null;
-    }
+    private void writeAll() throws IOException {
 
-    /**
-     * Save current in-memory staff list back to the CSV.
-     *
-     * IMPORTANT:
-     * Your Staff model stores fullName, so we split it back into first/last.
-     * If a name only has one word, lastName becomes blank.
-     */
-    private void saveToCsv() throws IOException {
-        if (sourceFilePath == null) {
-            throw new IllegalStateException("CSV file path not set. Call load() first.");
-        }
+        try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(sourceFilePath))) {
+            pw.println(originalHeader);
 
-            // Header must match the real CSV structure
-            writer.write("staffId,firstName,lastName,role,department");
-            writer.newLine();
-
-            for (Staff s : staffList) {
-                String[] nameParts = splitName(s.getName());
-                String firstName = nameParts[0];
-                String lastName = nameParts[1];
-
-                writer.write(String.join(",",
-                        safe(s.getStaffId()),
-                        safe(firstName),
-                        safe(lastName),
-                        safe(s.getRole()),
-                        safe(s.getDepartment())
-                ));
-                writer.newLine();
+            for (String[] row : rawRows) {
+                String[] safe = new String[row.length];
+                for (int i = 0; i < row.length; i++) {
+                    safe[i] = csvSafe(row[i]);
+                }
+                pw.println(String.join(",", safe));
             }
         }
     }
 
-    /**
-     * Split a full name into first + last.
-     * - "Michelle Adams" -> ["Michelle", "Adams"]
-     * - "Mary Jane Smith" -> ["Mary Jane", "Smith"] (last word treated as last name)
-     * - "Michelle" -> ["Michelle", ""]
-     */
-    private String[] splitName(String fullName) {
-        if (fullName == null) return new String[]{"", ""};
-        String n = fullName.trim();
-        if (n.isEmpty()) return new String[]{"", ""};
-
-        int lastSpace = n.lastIndexOf(' ');
-        if (lastSpace == -1) return new String[]{n, ""};
-
-        String first = n.substring(0, lastSpace).trim();
-        String last = n.substring(lastSpace + 1).trim();
-        return new String[]{first, last};
-    }
-
-    /**
-     * Prevent commas breaking CSV structure.
-     */
-    private String safe(String value) {
-        return value == null ? "" : value.replace(",", " ");
+    private String csvSafe(String v) {
+        if (v == null)
+            return "";
+        if (v.contains(",") || v.contains("\"")) {
+            v = v.replace("\"", "\"\"");
+            return "\"" + v + "\"";
+        }
+        return v;
     }
 }
