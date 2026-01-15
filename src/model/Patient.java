@@ -8,12 +8,12 @@ public class Patient {
     private String dateOfBirth;
     private String nhsNumber;
     private String gender;
-    private String phoneNumber;
+    private String phone;
     private String email;
     private String address;
     private String postcode;
-    private String emergencyContactName;
-    private String emergencyContactPhone;
+    private String emergencyContact;
+    private String emergencyPhone;
     private String registrationDate;
     private String gpSurgeryId;
 
@@ -24,31 +24,31 @@ public class Patient {
             String dateOfBirth,
             String nhsNumber,
             String gender,
-            String phoneNumber,
+            String phone,
             String email,
             String address,
             String postcode,
-            String emergencyContactName,
-            String emergencyContactPhone,
+            String emergencyContact,
+            String emergencyPhone,
             String registrationDate,
             String gpSurgeryId) {
+
         this.patientId = patientId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
         this.nhsNumber = nhsNumber;
         this.gender = gender;
-        this.phoneNumber = phoneNumber;
+        this.phone = phone;
         this.email = email;
         this.address = address;
         this.postcode = postcode;
-        this.emergencyContactName = emergencyContactName;
-        this.emergencyContactPhone = emergencyContactPhone;
+        this.emergencyContact = emergencyContact;
+        this.emergencyPhone = emergencyPhone;
         this.registrationDate = registrationDate;
         this.gpSurgeryId = gpSurgeryId;
     }
 
-    // ---- getters only (clean MVC model) ----
     public String getPatientId() {
         return patientId;
     }
@@ -73,8 +73,8 @@ public class Patient {
         return gender;
     }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public String getPhone() {
+        return phone;
     }
 
     public String getEmail() {
@@ -89,12 +89,12 @@ public class Patient {
         return postcode;
     }
 
-    public String getEmergencyContactName() {
-        return emergencyContactName;
+    public String getEmergencyContact() {
+        return emergencyContact;
     }
 
-    public String getEmergencyContactPhone() {
-        return emergencyContactPhone;
+    public String getEmergencyPhone() {
+        return emergencyPhone;
     }
 
     public String getRegistrationDate() {

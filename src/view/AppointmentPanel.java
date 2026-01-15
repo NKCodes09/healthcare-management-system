@@ -1,43 +1,39 @@
 package view;
 
+import controller.AppointmentController;
 import model.Appointment;
-import repository.AppointmentRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 
 public class AppointmentPanel extends JPanel {
 
-    private final AppointmentRepository repo = new AppointmentRepository();
+    private final AppointmentController controller = new AppointmentController();
     private final DefaultTableModel model;
-    private  JTable table;
+    private final JTable table;
 
     public AppointmentPanel() {
-     
 
         setLayout(new BorderLayout());
 
         model = new DefaultTableModel(new String[] {
                 "ID", "Patient", "Clinician", "Facility",
-                "Date", "Time", "Duration", "Type", "Status",
-                "Reason", "Notes", "Created", "Updated"
+                "Date", "Time", "Duration",
+                "Type", "Status", "Reason", "Notes",
+                "Created", "Updated"
         }, 0);
 
         table = new JTable(model);
-        load();
         table.setRowHeight(24);
-        table.setSelectionBackground(new Color(220, 235, 250));
-        table.setSelectionForeground(Color.BLACK);
-        table.getTableHeader().setReorderingAllowed(false);
+
+        load();
+
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(buttons(), BorderLayout.SOUTH);
     }
-
-    /* ================= BUTTONS ================= */
 
     private JPanel buttons() {
 
@@ -47,23 +43,22 @@ public class AppointmentPanel extends JPanel {
         JButton edit = new JButton("Edit");
         JButton del = new JButton("Delete");
 
-        add.addActionListener(e -> addAppointment());
-        edit.addActionListener(e -> editAppointment());
-        del.addActionListener(e -> deleteAppointment());
+        add.addActionListener(e -> add());
+        edit.addActionListener(e -> edit());
+        del.addActionListener(e -> delete());
 
         p.add(add);
         p.add(edit);
         p.add(del);
+
         return p;
     }
-
-    /* ================= LOAD ================= */
 
     private void load() {
 
         model.setRowCount(0);
 
-        for (Appointment a : repo.getAll()) {
+        for (Appointment a : controller.getAll()) {
             model.addRow(new Object[] {
                     a.getAppointmentId(),
                     a.getPatientId(),
@@ -82,224 +77,168 @@ public class AppointmentPanel extends JPanel {
         }
     }
 
-    /* ================= CRUD ================= */
+    private void add() {
 
-    private void addAppointment() {
-
-        Appointment a = appointmentForm(null);
-        if (a == null)
+        AppointmentForm f = new AppointmentForm(null);
+        if (!f.show())
             return;
 
         try {
-            repo.add(a);
+            controller.add(f.get());
             load();
         } catch (IOException e) {
-            showError(e.getMessage());
+            error(e.getMessage());
         }
     }
 
-    private void editAppointment() {
+    private void edit() {
 
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            showError("Select appointment first.");
-            return;
-        }
-
-        Appointment old = repo.getAll().get(row);
-        Appointment updated = appointmentForm(old);
-        if (updated == null)
+        int r = table.getSelectedRow();
+        if (r == -1)
             return;
 
-        Appointment fixed = new Appointment(
-                updated.getAppointmentId(),
-                updated.getPatientId(),
-                updated.getClinicianId(),
-                updated.getFacilityId(),
-                updated.getAppointmentDate(),
-                updated.getAppointmentTime(),
-                updated.getDurationMinutes(),
-                updated.getAppointmentType(),
-                updated.getStatus(),
-                updated.getReasonForVisit(),
-                updated.getNotes(),
-                old.getCreatedDate(),
-                LocalDate.now().toString());
+        AppointmentForm f = new AppointmentForm(controller.getAll().get(r));
 
-        repo.getAll().set(row, fixed);
+        if (!f.show())
+            return;
 
         try {
-            repo.updateAll();
+            controller.update(r, f.get());
             load();
         } catch (IOException e) {
-            showError(e.getMessage());
+            error(e.getMessage());
         }
     }
 
-    private void deleteAppointment() {
+    private void delete() {
 
-        int row = table.getSelectedRow();
-        if (row < 0)
+        int r = table.getSelectedRow();
+        if (r == -1)
             return;
 
         if (JOptionPane.showConfirmDialog(
-                this,
-                "Delete appointment?",
-                "Confirm",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                this, "Delete appointment?",
+                "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
             try {
-                repo.delete(row);
+                controller.delete(r);
                 load();
             } catch (IOException e) {
-                showError(e.getMessage());
+                error(e.getMessage());
             }
         }
+    }
+
+    private void error(String m) {
+        JOptionPane.showMessageDialog(this, m,
+                "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     /* ================= FORM ================= */
 
-    private Appointment appointmentForm(Appointment a) {
+    private static class AppointmentForm {
 
-        JTextField idField = new JTextField();
-        JTextField patientField = new JTextField();
-        JTextField clinicianField = new JTextField();
-        JTextField facilityField = new JTextField();
-        JTextField dateField = new JTextField();
-        JTextField timeField = new JTextField();
-        JTextField durationField = new JTextField();
-        JTextField reasonField = new JTextField();
+        private final JTextField[] f = new JTextField[10];
+        private final Appointment original;
 
-        JTextArea notesArea = new JTextArea(3, 20);
-
-        JComboBox<String> typeBox = new JComboBox<>(new String[] {
-                "Routine Consultation", "Follow-up", "Vaccination",
-                "Urgent Consultation", "Specialist Consultation",
-                "Emergency", "Health Check"
-        });
-
-        JComboBox<String> statusBox = new JComboBox<>(new String[] {
-                "Scheduled", "Completed", "Cancelled"
-        });
-
-        JPanel panel = new JPanel(new GridLayout(0, 2, 6, 6));
-
-        panel.add(new JLabel("Appointment ID"));
-        panel.add(idField);
-        panel.add(new JLabel("Patient ID"));
-        panel.add(patientField);
-        panel.add(new JLabel("Clinician ID"));
-        panel.add(clinicianField);
-        panel.add(new JLabel("Facility ID"));
-        panel.add(facilityField);
-        panel.add(new JLabel("Date (YYYY-MM-DD)"));
-        panel.add(dateField);
-        panel.add(new JLabel("Time (HH:MM)"));
-        panel.add(timeField);
-        panel.add(new JLabel("Duration (minutes)"));
-        panel.add(durationField);
-        panel.add(new JLabel("Appointment Type"));
-        panel.add(typeBox);
-        panel.add(new JLabel("Status"));
-        panel.add(statusBox);
-        panel.add(new JLabel("Reason for Visit"));
-        panel.add(reasonField);
-        panel.add(new JLabel("Notes"));
-        panel.add(new JScrollPane(notesArea));
-
-        if (a != null) {
-            idField.setText(a.getAppointmentId());
-            idField.setEditable(false);
-            patientField.setText(a.getPatientId());
-            clinicianField.setText(a.getClinicianId());
-            facilityField.setText(a.getFacilityId());
-            dateField.setText(a.getAppointmentDate());
-            timeField.setText(a.getAppointmentTime());
-            durationField.setText(a.getDurationMinutes());
-            typeBox.setSelectedItem(a.getAppointmentType());
-            statusBox.setSelectedItem(a.getStatus());
-            reasonField.setText(a.getReasonForVisit());
-            notesArea.setText(a.getNotes());
-        } else {
-            dateField.setText(LocalDate.now().toString());
+        AppointmentForm(Appointment o) {
+            original = o;
         }
 
-        JScrollPane scroll = new JScrollPane(panel);
-        scroll.setPreferredSize(new Dimension(520, 420));
+        boolean show() {
 
-        while (true) {
+            JPanel p = new JPanel(new GridLayout(0, 2, 6, 6));
 
-            int ok = JOptionPane.showConfirmDialog(
-                    this,
-                    scroll,
-                    a == null ? "Add Appointment" : "Edit Appointment",
-                    JOptionPane.OK_CANCEL_OPTION);
+            String[] labels = {
+                    "Appointment ID (A001)", "Patient ID",
+                    "Clinician ID", "Facility ID",
+                    "Date (YYYY-MM-DD)", "Time (HH:MM)",
+                    "Duration (minutes)", "Type",
+                    "Status", "Reason"
+            };
 
-            if (ok != JOptionPane.OK_OPTION)
-                return null;
-
-            /* ===== VALIDATION ===== */
-
-            if (!idField.getText().matches("A\\d{3}")) {
-                showError("Appointment ID must be like A001");
-                continue;
+            for (int i = 0; i < f.length; i++) {
+                f[i] = new JTextField();
+                p.add(new JLabel(labels[i]));
+                p.add(f[i]);
             }
 
-            if (!patientField.getText().matches("P\\d{3}")) {
-                showError("Patient ID must be like P001");
-                continue;
+            if (original != null) {
+                f[0].setText(original.getAppointmentId());
+                f[0].setEditable(false);
+                f[1].setText(original.getPatientId());
+                f[2].setText(original.getClinicianId());
+                f[3].setText(original.getFacilityId());
+                f[4].setText(original.getAppointmentDate());
+                f[5].setText(original.getAppointmentTime());
+                f[6].setText(original.getDurationMinutes());
+                f[7].setText(original.getAppointmentType());
+                f[8].setText(original.getStatus());
+                f[9].setText(original.getReasonForVisit());
             }
 
-            if (!clinicianField.getText().matches("C\\d{3}")) {
-                showError("Clinician ID must be like C001");
-                continue;
+            JScrollPane scroll = new JScrollPane(p);
+            scroll.setPreferredSize(new Dimension(450, 360));
+
+            while (true) {
+
+                int ok = JOptionPane.showConfirmDialog(
+                        null, scroll,
+                        original == null ? "Add Appointment" : "Edit Appointment",
+                        JOptionPane.OK_CANCEL_OPTION);
+
+                if (ok != JOptionPane.OK_OPTION)
+                    return false;
+
+                if (validate())
+                    return true;
+            }
+        }
+
+        private boolean validate() {
+
+            if (!f[0].getText().matches("A\\d{3}")) {
+                error("Appointment ID must be A001 format.");
+                return false;
             }
 
-            if (!facilityField.getText().matches("[SH]\\d{3}")) {
-                showError("Facility ID must be S001 or H001");
-                continue;
+            if (!f[4].getText().matches("\\d{4}-\\d{2}-\\d{2}")
+                    || LocalDate.parse(f[4].getText()).isBefore(LocalDate.now().minusDays(1))) {
+                error("Invalid appointment date.");
+                return false;
             }
 
-            try {
-                LocalDate.parse(dateField.getText());
-            } catch (DateTimeParseException e) {
-                showError("Invalid date format");
-                continue;
+            if (!f[6].getText().matches("\\d+")) {
+                error("Duration must be numeric.");
+                return false;
             }
 
-            if (!timeField.getText().matches("\\d{2}:\\d{2}")) {
-                showError("Time must be HH:MM");
-                continue;
-            }
+            return true;
+        }
 
-            if (!durationField.getText().matches("\\d+")) {
-                showError("Duration must be numeric");
-                continue;
-            }
+        Appointment get() {
 
-            if (reasonField.getText().trim().isEmpty()) {
-                showError("Reason for visit required");
-                continue;
-            }
+            String now = LocalDate.now().toString();
 
             return new Appointment(
-                    idField.getText(),
-                    patientField.getText(),
-                    clinicianField.getText(),
-                    facilityField.getText(),
-                    dateField.getText(),
-                    timeField.getText(),
-                    durationField.getText(),
-                    typeBox.getSelectedItem().toString(),
-                    statusBox.getSelectedItem().toString(),
-                    reasonField.getText(),
-                    notesArea.getText(),
-                    LocalDate.now().toString(),
-                    LocalDate.now().toString());
+                    f[0].getText(),
+                    f[1].getText(),
+                    f[2].getText(),
+                    f[3].getText(),
+                    f[4].getText(),
+                    f[5].getText(),
+                    f[6].getText(),
+                    f[7].getText(),
+                    f[8].getText(),
+                    f[9].getText(),
+                    "",
+                    original == null ? now : original.getCreatedDate(),
+                    now);
         }
-    }
 
-    private void showError(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Validation Error", JOptionPane.ERROR_MESSAGE);
+        private void error(String m) {
+            JOptionPane.showMessageDialog(null, m,
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

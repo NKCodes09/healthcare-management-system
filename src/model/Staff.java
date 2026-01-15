@@ -16,10 +16,18 @@ public class Staff {
     private String accessLevel;
 
     public Staff(
-            String staffId, String firstName, String lastName,
-            String role, String department, String facilityId,
-            String phoneNumber, String email, String employmentStatus,
-            String startDate, String lineManager, String accessLevel) {
+            String staffId,
+            String firstName,
+            String lastName,
+            String role,
+            String department,
+            String facilityId,
+            String phoneNumber,
+            String email,
+            String employmentStatus,
+            String startDate,
+            String lineManager,
+            String accessLevel) {
 
         this.staffId = staffId;
         this.firstName = firstName;

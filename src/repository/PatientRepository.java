@@ -1,73 +1,91 @@
 package repository;
 
 import model.Patient;
-
 import java.io.*;
 import java.util.*;
 
 public class PatientRepository {
 
     private static final String CSV_PATH = "data/patients.csv";
+
     private final List<Patient> patients = new ArrayList<>();
+    private final List<String[]> rawRows = new ArrayList<>();
+    private String header;
 
     public PatientRepository() {
         load();
     }
 
     private void load() {
+
         patients.clear();
+        rawRows.clear();
 
         try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
 
-            String headerLine = br.readLine();
-            if (headerLine == null)
+            header = br.readLine();
+            if (header == null)
                 return;
 
-            String[] headers = headerLine.split(",");
+            String[] headers = CsvUtil.splitCsvLine(header);
             Map<String, Integer> index = new HashMap<>();
 
-            for (int i = 0; i < headers.length; i++) {
-                index.put(headers[i].trim(), i);
-            }
+            for (int i = 0; i < headers.length; i++)
+                index.put(headers[i], i);
 
             String line;
             while ((line = br.readLine()) != null) {
 
                 String[] c = CsvUtil.splitCsvLine(line);
+                rawRows.add(c);
 
                 patients.add(new Patient(
-                        get(c, index, "patient_id"),
-                        get(c, index, "first_name"),
-                        get(c, index, "last_name"),
-                        get(c, index, "date_of_birth"),
-                        get(c, index, "nhs_number"),
-                        get(c, index, "gender"),
-                        get(c, index, "phone_number"),
-                        get(c, index, "email"),
-                        get(c, index, "address"),
-                        get(c, index, "postcode"),
-                        get(c, index, "emergency_contact_name"),
-                        get(c, index, "emergency_contact_phone"),
-                        get(c, index, "registration_date"),
-                        get(c, index, "gp_surgery_id")));
+                        CsvUtil.get(c, index.get("patient_id")),
+                        CsvUtil.get(c, index.get("first_name")),
+                        CsvUtil.get(c, index.get("last_name")),
+                        CsvUtil.get(c, index.get("date_of_birth")),
+                        CsvUtil.get(c, index.get("nhs_number")),
+                        CsvUtil.get(c, index.get("gender")),
+                        CsvUtil.get(c, index.get("phone_number")),
+                        CsvUtil.get(c, index.get("email")),
+                        CsvUtil.get(c, index.get("address")),
+                        CsvUtil.get(c, index.get("postcode")),
+                        CsvUtil.get(c, index.get("emergency_contact_name")),
+                        CsvUtil.get(c, index.get("emergency_contact_phone")),
+                        CsvUtil.get(c, index.get("registration_date")),
+                        CsvUtil.get(c, index.get("gp_surgery_id"))));
             }
 
         } catch (IOException e) {
-            System.err.println("Failed to load patients.csv: " + e.getMessage());
+            System.err.println("Failed to load patients.csv");
         }
-    }
-
-    private String get(String[] row, Map<String, Integer> index, String key) {
-        Integer i = index.get(key);
-        return (i != null && i < row.length) ? row[i].trim() : "";
     }
 
     public List<Patient> getAll() {
         return patients;
     }
 
-    public void addPatient(Patient p) throws IOException {
+    public void add(Patient p) throws IOException {
+
         patients.add(p);
+
+        rawRows.add(new String[] {
+                p.getPatientId(),
+                p.getFirstName(),
+                p.getLastName(),
+                p.getDateOfBirth(),
+                p.getNhsNumber(),
+                p.getGender(),
+                p.getPhone(),
+                p.getEmail(),
+                p.getAddress(),
+                p.getPostcode(),
+                p.getEmergencyContact(),
+                p.getEmergencyPhone(),
+                p.getRegistrationDate(),
+                p.getGpSurgeryId()
+        });
+
         writeAll();
     }
 
@@ -75,36 +93,22 @@ public class PatientRepository {
         writeAll();
     }
 
-    public void deletePatient(int index) throws IOException {
+    public void delete(int index) throws IOException {
         patients.remove(index);
+        rawRows.remove(index);
         writeAll();
     }
 
     private void writeAll() throws IOException {
+
         try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
 
-            pw.println(String.join(",",
-                    "patient_id", "first_name", "last_name", "date_of_birth", "nhs_number",
-                    "gender", "phone_number", "email", "address", "postcode",
-                    "emergency_contact_name", "emergency_contact_phone",
-                    "registration_date", "gp_surgery_id"));
+            pw.println(header);
 
-            for (Patient p : patients) {
-                pw.println(String.join(",",
-                        p.getPatientId(),
-                        p.getFirstName(),
-                        p.getLastName(),
-                        p.getDateOfBirth(),
-                        p.getNhsNumber(),
-                        p.getGender(),
-                        p.getPhoneNumber(),
-                        p.getEmail(),
-                        p.getAddress(),
-                        p.getPostcode(),
-                        p.getEmergencyContactName(),
-                        p.getEmergencyContactPhone(),
-                        p.getRegistrationDate(),
-                        p.getGpSurgeryId()));
+            for (String[] r : rawRows) {
+                for (int i = 0; i < r.length; i++)
+                    r[i] = CsvUtil.escape(r[i]);
+                pw.println(String.join(",", r));
             }
         }
     }

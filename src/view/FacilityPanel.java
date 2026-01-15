@@ -1,7 +1,7 @@
 package view;
 
+import controller.FacilityController;
 import model.Facility;
-import repository.FacilityRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -10,67 +10,53 @@ import java.io.IOException;
 
 public class FacilityPanel extends JPanel {
 
-    private FacilityRepository repository;
-    private DefaultTableModel model;
-    private JTable table;
+    private final FacilityController controller = new FacilityController();
+    private final DefaultTableModel model;
+    private final JTable table;
 
     public FacilityPanel() {
 
-        repository = new FacilityRepository();
         setLayout(new BorderLayout());
 
         model = new DefaultTableModel(new String[] {
                 "Facility ID", "Name", "Type", "Address", "Postcode",
-                "Phone", "Email", "Opening Hours", "Manager",
-                "Capacity", "Specialities"
+                "Phone", "Email", "Opening Hours",
+                "Manager", "Capacity", "Specialities"
         }, 0);
 
-        table = new JTable(model); // ✅ CREATE FIRST
-
-        // ✅ STYLE AFTER CREATION
+        table = new JTable(model);
         table.setRowHeight(24);
-        table.setSelectionBackground(new Color(220, 235, 250));
-        table.setSelectionForeground(Color.BLACK);
-        table.getTableHeader().setReorderingAllowed(false);
 
-        loadFacilities();
+        load();
 
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(createButtons(), BorderLayout.SOUTH);
+        add(buttons(), BorderLayout.SOUTH);
     }
 
-    /* ================= BUTTONS ================= */
-
-    private JPanel createButtons() {
+    private JPanel buttons() {
 
         JPanel p = new JPanel();
 
         JButton add = new JButton("Add");
         JButton edit = new JButton("Edit");
-        JButton delete = new JButton("Delete");
+        JButton del = new JButton("Delete");
 
-        add.setFocusPainted(false);
-        edit.setFocusPainted(false);
-        delete.setFocusPainted(false);
-
-        add.addActionListener(e -> addFacility());
-        edit.addActionListener(e -> editFacility());
-        delete.addActionListener(e -> deleteFacility());
+        add.addActionListener(e -> add());
+        edit.addActionListener(e -> edit());
+        del.addActionListener(e -> delete());
 
         p.add(add);
         p.add(edit);
-        p.add(delete);
+        p.add(del);
 
         return p;
     }
 
-    /* ================= LOAD ================= */
-
-    private void loadFacilities() {
+    private void load() {
 
         model.setRowCount(0);
 
-        for (Facility f : repository.getAll()) {
+        for (Facility f : controller.getAll()) {
             model.addRow(new Object[] {
                     f.getFacilityId(),
                     f.getFacilityName(),
@@ -87,174 +73,171 @@ public class FacilityPanel extends JPanel {
         }
     }
 
-    /* ================= CRUD ================= */
+    private void add() {
 
-    private void addFacility() {
-
-        Facility f = facilityForm(null);
-        if (f == null)
+        FacilityForm form = new FacilityForm(null);
+        if (!form.show())
             return;
 
         try {
-            repository.add(f);
-            loadFacilities();
-        } catch (IOException ex) {
-            showError(ex.getMessage());
+            controller.add(form.get());
+            load();
+        } catch (IOException e) {
+            error(e.getMessage());
         }
     }
 
-    private void editFacility() {
+    private void edit() {
 
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            showError("Select a facility first.");
-            return;
-        }
-
-        Facility old = repository.getAll().get(row);
-        Facility updated = facilityForm(old);
-        if (updated == null)
+        int r = table.getSelectedRow();
+        if (r == -1)
             return;
 
-        repository.getAll().set(row, updated);
+        FacilityForm form = new FacilityForm(controller.getAll().get(r));
+        if (!form.show())
+            return;
 
         try {
-            repository.updateAll();
-            loadFacilities();
-        } catch (IOException ex) {
-            showError(ex.getMessage());
+            controller.update(r, form.get());
+            load();
+        } catch (IOException e) {
+            error(e.getMessage());
         }
     }
 
-    private void deleteFacility() {
+    private void delete() {
 
-        int row = table.getSelectedRow();
-        if (row == -1)
+        int r = table.getSelectedRow();
+        if (r == -1)
             return;
 
         if (JOptionPane.showConfirmDialog(
-                this,
-                "Delete selected facility?",
-                "Confirm",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                this, "Delete facility?",
+                "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
             try {
-                repository.delete(row);
-                loadFacilities();
-            } catch (IOException ex) {
-                showError(ex.getMessage());
+                controller.delete(r);
+                load();
+            } catch (IOException e) {
+                error(e.getMessage());
             }
         }
+    }
+
+    private void error(String m) {
+        JOptionPane.showMessageDialog(this, m,
+                "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     /* ================= FORM ================= */
 
-    private Facility facilityForm(Facility f) {
+    private static class FacilityForm {
 
-        JTextField id = new JTextField();
-        JTextField name = new JTextField();
-        JTextField type = new JTextField();
-        JTextField address = new JTextField();
-        JTextField postcode = new JTextField();
-        JTextField phone = new JTextField();
-        JTextField email = new JTextField();
-        JTextField opening = new JTextField();
-        JTextField manager = new JTextField();
-        JTextField capacity = new JTextField();
-        JTextField specialities = new JTextField();
+        private final JTextField[] f = new JTextField[11];
+        private final Facility original;
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 6, 6));
-
-        panel.add(new JLabel("Facility ID"));
-        panel.add(id);
-        panel.add(new JLabel("Name"));
-        panel.add(name);
-        panel.add(new JLabel("Type"));
-        panel.add(type);
-        panel.add(new JLabel("Address"));
-        panel.add(address);
-        panel.add(new JLabel("Postcode"));
-        panel.add(postcode);
-        panel.add(new JLabel("Phone"));
-        panel.add(phone);
-        panel.add(new JLabel("Email"));
-        panel.add(email);
-        panel.add(new JLabel("Opening Hours"));
-        panel.add(opening);
-        panel.add(new JLabel("Manager"));
-        panel.add(manager);
-        panel.add(new JLabel("Capacity"));
-        panel.add(capacity);
-        panel.add(new JLabel("Specialities (| separated)"));
-        panel.add(specialities);
-
-        if (f != null) {
-            id.setText(f.getFacilityId());
-            id.setEditable(false);
-            name.setText(f.getFacilityName());
-            type.setText(f.getFacilityType());
-            address.setText(f.getAddress());
-            postcode.setText(f.getPostcode());
-            phone.setText(f.getPhoneNumber());
-            email.setText(f.getEmail());
-            opening.setText(f.getOpeningHours());
-            manager.setText(f.getManagerName());
-            capacity.setText(f.getCapacity());
-            specialities.setText(f.getSpecialitiesOffered());
+        FacilityForm(Facility o) {
+            original = o;
         }
 
-        JScrollPane scroll = new JScrollPane(panel);
-        scroll.setPreferredSize(new Dimension(520, 420));
+        boolean show() {
 
-        while (true) {
+            JPanel p = new JPanel(new GridLayout(0, 2, 6, 6));
 
-            int ok = JOptionPane.showConfirmDialog(
-                    this,
-                    scroll,
-                    f == null ? "Add Facility" : "Edit Facility",
-                    JOptionPane.OK_CANCEL_OPTION);
+            String[] labels = {
+                    "Facility ID (S001/H001)", "Name", "Type",
+                    "Address", "Postcode", "Phone",
+                    "Email", "Opening Hours",
+                    "Manager", "Capacity",
+                    "Specialities (| separated)"
+            };
 
-            if (ok != JOptionPane.OK_OPTION)
-                return null;
-
-            if (!id.getText().matches("[SH]\\d{3}")) {
-                showError("Facility ID must be S001 or H001");
-                continue;
+            for (int i = 0; i < f.length; i++) {
+                f[i] = new JTextField();
+                p.add(new JLabel(labels[i]));
+                p.add(f[i]);
             }
 
-            if (name.getText().trim().length() < 3) {
-                showError("Facility name required");
-                continue;
+            if (original != null) {
+                f[0].setText(original.getFacilityId());
+                f[0].setEditable(false);
+                f[1].setText(original.getFacilityName());
+                f[2].setText(original.getFacilityType());
+                f[3].setText(original.getAddress());
+                f[4].setText(original.getPostcode());
+                f[5].setText(original.getPhoneNumber());
+                f[6].setText(original.getEmail());
+                f[7].setText(original.getOpeningHours());
+                f[8].setText(original.getManagerName());
+                f[9].setText(original.getCapacity());
+                f[10].setText(original.getSpecialitiesOffered());
             }
 
-            if (!capacity.getText().matches("\\d+")) {
-                showError("Capacity must be numeric");
-                continue;
+            JScrollPane scroll = new JScrollPane(p);
+            scroll.setPreferredSize(new Dimension(500, 420));
+
+            while (true) {
+                int ok = JOptionPane.showConfirmDialog(
+                        null, scroll,
+                        original == null ? "Add Facility" : "Edit Facility",
+                        JOptionPane.OK_CANCEL_OPTION);
+
+                if (ok != JOptionPane.OK_OPTION)
+                    return false;
+
+                if (validate())
+                    return true;
+            }
+        }
+
+        private boolean validate() {
+
+            if (!f[0].getText().matches("(S|H)\\d{3}")) {
+                error("Facility ID must be S001 or H001.");
+                return false;
             }
 
-            if (!email.getText().matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
-                showError("Invalid email format");
-                continue;
+            if (f[1].getText().length() < 3) {
+                error("Name required.");
+                return false;
             }
 
+            if (!f[4].getText().matches("[A-Z]\\d{1,2}\\s?\\d[A-Z]{2}")) {
+                error("Invalid postcode.");
+                return false;
+            }
+
+            if (!f[6].getText().matches(".+@.+\\..+")) {
+                error("Invalid email.");
+                return false;
+            }
+
+            if (!f[9].getText().matches("\\d+")) {
+                error("Capacity must be numeric.");
+                return false;
+            }
+
+            return true;
+        }
+
+        Facility get() {
             return new Facility(
-                    id.getText().trim(),
-                    name.getText().trim(),
-                    type.getText().trim(),
-                    address.getText().trim(),
-                    postcode.getText().trim(),
-                    phone.getText().trim(),
-                    email.getText().trim(),
-                    opening.getText().trim(),
-                    manager.getText().trim(),
-                    capacity.getText().trim(),
-                    specialities.getText().trim());
+                    f[0].getText(),
+                    f[1].getText(),
+                    f[2].getText(),
+                    f[3].getText(),
+                    f[4].getText(),
+                    f[5].getText(),
+                    f[6].getText(),
+                    f[7].getText(),
+                    f[8].getText(),
+                    f[9].getText(),
+                    f[10].getText());
         }
-    }
 
-    private void showError(String msg) {
-        JOptionPane.showMessageDialog(this, msg,
-                "Validation Error",
-                JOptionPane.ERROR_MESSAGE);
+        private void error(String m) {
+            JOptionPane.showMessageDialog(null, m,
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

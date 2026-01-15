@@ -15,10 +15,17 @@ public class Facility {
     private String specialitiesOffered;
 
     public Facility(
-            String facilityId, String facilityName, String facilityType,
-            String address, String postcode, String phoneNumber,
-            String email, String openingHours, String managerName,
-            String capacity, String specialitiesOffered) {
+            String facilityId,
+            String facilityName,
+            String facilityType,
+            String address,
+            String postcode,
+            String phoneNumber,
+            String email,
+            String openingHours,
+            String managerName,
+            String capacity,
+            String specialitiesOffered) {
 
         this.facilityId = facilityId;
         this.facilityName = facilityName;

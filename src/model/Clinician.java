@@ -28,6 +28,7 @@ public class Clinician {
             String workplaceType,
             String employmentStatus,
             String startDate) {
+
         this.clinicianId = clinicianId;
         this.firstName = firstName;
         this.lastName = lastName;

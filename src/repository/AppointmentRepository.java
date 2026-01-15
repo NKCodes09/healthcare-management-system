@@ -29,6 +29,7 @@ public class AppointmentRepository {
 
             String[] headers = CsvUtil.splitCsvLine(header);
             Map<String, Integer> index = new HashMap<>();
+
             for (int i = 0; i < headers.length; i++)
                 index.put(headers[i], i);
 
@@ -66,6 +67,7 @@ public class AppointmentRepository {
     public void add(Appointment a) throws IOException {
 
         appointments.add(a);
+
         rawRows.add(new String[] {
                 a.getAppointmentId(),
                 a.getPatientId(),
@@ -85,13 +87,13 @@ public class AppointmentRepository {
         writeAll();
     }
 
-    public void delete(int index) throws IOException {
-        appointments.remove(index);
-        rawRows.remove(index);
+    public void updateAll() throws IOException {
         writeAll();
     }
 
-    public void updateAll() throws IOException {
+    public void delete(int index) throws IOException {
+        appointments.remove(index);
+        rawRows.remove(index);
         writeAll();
     }
 
