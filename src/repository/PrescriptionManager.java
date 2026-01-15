@@ -9,6 +9,7 @@ public class PrescriptionManager {
 
     private PrescriptionManager() {
     }
+    
 
     public static synchronized PrescriptionManager getInstance() {
         if (instance == null) {
