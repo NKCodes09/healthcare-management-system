@@ -1,7 +1,0 @@
-Prescription ID: asd
-Patient NHS: as
-Clinician ID: d
-Medication: as
-Dosage: d
-Pharmacy: as
-Status: d

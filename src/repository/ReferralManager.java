@@ -29,6 +29,8 @@ public class ReferralManager {
         File f = new File(dir, "referral_" + r.getReferralId() + ".txt");
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+            pw.println("REFERRAL");
+            pw.println("==============================");
             pw.println("Referral ID: " + r.getReferralId());
             pw.println("Patient ID: " + r.getPatientId());
             pw.println("Urgency: " + r.getUrgencyLevel());

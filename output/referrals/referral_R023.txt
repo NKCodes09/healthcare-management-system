@@ -1,0 +1,12 @@
+REFERRAL
+==============================
+Referral ID: R023
+Patient ID: P003
+Urgency: Urgent
+Status: In Progress
+
+Reason:
+sdvsadvsdv
+
+Clinical Summary:
+sdvsdvsdv

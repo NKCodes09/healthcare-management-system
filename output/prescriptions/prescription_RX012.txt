@@ -1,0 +1,21 @@
+PRESCRIPTION
+==============================
+Prescription ID: RX012
+Patient ID: P007
+Clinician ID: C003
+Appointment ID: A007
+Prescription Date: 2024-09-08
+
+Medication: sdc
+Dosage: 20mg
+Frequency: 89
+Duration: 89 days
+Quantity: 89
+
+Instructions:
+sdc
+
+Pharmacy: sca
+Status: Issued
+Issue Date: 2025-07-07
+Collection Date: 2025-07-07

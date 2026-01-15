@@ -1,6 +1,7 @@
 package view;
 
 import model.Prescription;
+import repository.PrescriptionManager;
 import repository.PrescriptionRepository;
 
 import javax.swing.*;
@@ -16,6 +17,8 @@ public class PrescriptionPanel extends JPanel {
     private final PrescriptionRepository repository;
     private final DefaultTableModel model;
     private  JTable table;
+    private final PrescriptionManager manager =
+        PrescriptionManager.getInstance();
 
     public PrescriptionPanel() {
        
@@ -89,12 +92,15 @@ public class PrescriptionPanel extends JPanel {
     /* ================= CRUD ================= */
 
     private void addPrescription() {
+
         PrescriptionForm form = new PrescriptionForm(null);
         if (!form.showDialog())
             return;
 
+        Prescription p = form.getPrescription();
+
         try {
-            repository.addPrescription(form.getPrescription());
+            manager.processPrescription(p, repository); // CSV + TXT
             loadPrescriptions();
         } catch (IOException ex) {
             showError(ex.getMessage());

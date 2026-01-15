@@ -2,76 +2,54 @@ package repository;
 
 import model.Prescription;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.io.PrintWriter;
 
 /**
- * PrescriptionWriter
- * ------------------
- * Responsible for generating a text file representing a prescription.
- * This is used to satisfy the "output text file" requirement in the rubric.
- *
- * Example output:
- * output/prescriptions/prescription_RX001.txt
+ * Generates prescription output text files
  */
 public class PrescriptionWriter {
 
-    /** Output directory for prescription text files */
     private static final String OUTPUT_DIR = "output/prescriptions";
 
-    /**
-     * Writes a formatted prescription text file for the provided prescription.
-     *
-     * @param prescription the prescription to write
-     * @throws IOException if file writing fails
-     */
-    public static void writePrescriptionTextFile(Prescription prescription) throws IOException {
-        if (prescription == null) {
-            throw new IllegalArgumentException("Prescription cannot be null");
-        }
+    public static void write(Prescription p) throws IOException {
 
-        // Ensure output directory exists
         File dir = new File(OUTPUT_DIR);
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
-        String filename = OUTPUT_DIR + "/prescription_" + prescription.getPrescriptionId() + ".txt";
+        File file = new File(
+                OUTPUT_DIR + "/prescription_" + p.getPrescriptionId() + ".txt");
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
 
-            writer.write("PRESCRIPTION");
-            writer.newLine();
-            writer.write("----------------------------------");
-            writer.newLine();
+            pw.println("PRESCRIPTION");
+            pw.println("==============================");
+            pw.println("Prescription ID: " + p.getPrescriptionId());
+            pw.println("Patient ID: " + p.getPatientId());
+            pw.println("Clinician ID: " + p.getClinicianId());
+            pw.println("Appointment ID: " + p.getAppointmentId());
+            pw.println("Prescription Date: " + p.getPrescriptionDate());
+            pw.println();
 
-            writer.write("Prescription ID: " + prescription.getPrescriptionId());
-            writer.newLine();
+            pw.println("Medication: " + p.getMedicationName());
+            pw.println("Dosage: " + p.getDosage());
+            pw.println("Frequency: " + p.getFrequency());
+            pw.println("Duration: " + p.getDurationDays() + " days");
+            pw.println("Quantity: " + p.getQuantity());
+            pw.println();
 
-            writer.write("Patient NHS Number: " + prescription.getPatientNhsNumber());
-            writer.newLine();
+            pw.println("Instructions:");
+            pw.println(p.getInstructions());
+            pw.println();
 
-            writer.write("Clinician ID: " + prescription.getClinicianId());
-            writer.newLine();
-
-            writer.newLine();
-            writer.write("Medication: " + prescription.getMedication());
-            writer.newLine();
-
-            writer.write("Dosage: " + prescription.getDosage());
-            writer.newLine();
-
-            writer.write("Pharmacy: " + prescription.getPharmacy());
-            writer.newLine();
-
-            writer.write("Collection Status: " + prescription.getCollectionStatus());
-            writer.newLine();
-
-            writer.newLine();
-            writer.write("Generated: " + LocalDateTime.now());
+            pw.println("Pharmacy: " + p.getPharmacyName());
+            pw.println("Status: " + p.getStatus());
+            pw.println("Issue Date: " + p.getIssueDate());
+            pw.println("Collection Date: " + p.getCollectionDate());
         }
     }
 }

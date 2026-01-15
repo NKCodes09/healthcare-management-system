@@ -1,0 +1,21 @@
+PRESCRIPTION
+==============================
+Prescription ID: RX020
+Patient ID: P005
+Clinician ID: C010
+Appointment ID: A019
+Prescription Date: 2022-09-09
+
+Medication: hjbj
+Dosage: 5mg
+Frequency: 8
+Duration: 8 days
+Quantity: 8
+
+Instructions:
+asx
+
+Pharmacy: 8h9ih
+Status: Issued
+Issue Date: 2022-08-08
+Collection Date: 2022-09-08

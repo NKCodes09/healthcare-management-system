@@ -1,0 +1,21 @@
+PRESCRIPTION
+==============================
+Prescription ID: RX015
+Patient ID: P009
+Clinician ID: C008
+Appointment ID: A005
+Prescription Date: 2025-06-05
+
+Medication: asc
+Dosage: 5mg
+Frequency: 6
+Duration: 7 days
+Quantity: 89
+
+Instructions:
+hjbjh
+
+Pharmacy: bkjk
+Status: Collected
+Issue Date: 2025-05-07
+Collection Date: 2025-05-07
