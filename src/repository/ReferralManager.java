@@ -16,19 +16,28 @@ public class ReferralManager {
         return instance;
     }
 
+    /**
+     * Saves referral to CSV and generates TXT output
+     */
     public void processReferral(Referral r, ReferralRepository repo) throws IOException {
-        repo.add(r);
+
+        // ✅ Correct repository method
+        repo.addReferral(r);
+
+        // ✅ Generate output file
         writeFile(r);
     }
 
     private void writeFile(Referral r) throws IOException {
 
         File dir = new File("output/referrals");
-        dir.mkdirs();
+        if (!dir.exists())
+            dir.mkdirs();
 
         File f = new File(dir, "referral_" + r.getReferralId() + ".txt");
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(f))) {
+
             pw.println("REFERRAL");
             pw.println("==============================");
             pw.println("Referral ID: " + r.getReferralId());

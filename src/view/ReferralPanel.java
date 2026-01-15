@@ -1,73 +1,73 @@
 package view;
 
+import controller.ReferralController;
 import model.Referral;
-import repository.ReferralManager;
-import repository.ReferralRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class ReferralPanel extends JPanel {
 
-    private final ReferralRepository repository = new ReferralRepository();
-    private final ReferralManager manager = ReferralManager.getInstance();
-
+    private final ReferralController controller = new ReferralController();
     private final DefaultTableModel model;
-    private  JTable table;
+    private final JTable table;
 
     public ReferralPanel() {
-      
 
         setLayout(new BorderLayout());
 
         model = new DefaultTableModel(new String[] {
-                "Referral ID", "Patient ID", "Ref Clinician", "To Clinician",
-                "From Facility", "To Facility", "Date", "Urgency",
-                "Reason", "Summary", "Investigations", "Status",
-                "Appointment", "Notes", "Created", "Updated"
+                "Referral ID", "Patient ID",
+                "Referring Clinician", "Referred Clinician",
+                "Referring Facility", "Referred Facility",
+                "Referral Date", "Urgency",
+                "Reason", "Clinical Summary",
+                "Investigations", "Status",
+                "Appointment ID", "Notes",
+                "Created Date", "Last Updated"
         }, 0);
 
         table = new JTable(model);
-        load();
         table.setRowHeight(24);
-        table.setSelectionBackground(new Color(220, 235, 250));
-        table.setSelectionForeground(Color.BLACK);
         table.getTableHeader().setReorderingAllowed(false);
+
+        load();
+
         add(new JScrollPane(table), BorderLayout.CENTER);
-        add(createButtons(), BorderLayout.SOUTH);
+        add(buttons(), BorderLayout.SOUTH);
     }
 
-    /* ================= BUTTONS ================= */
+    /* ================= TABLE ================= */
 
-    private JPanel createButtons() {
+    private JPanel buttons() {
 
         JPanel p = new JPanel();
 
         JButton add = new JButton("Add");
         JButton edit = new JButton("Edit");
-        JButton delete = new JButton("Delete");
+        JButton del = new JButton("Delete");
 
-        add.addActionListener(e -> addReferral());
-        edit.addActionListener(e -> editReferral());
-        delete.addActionListener(e -> deleteReferral());
+        add.addActionListener(e -> add());
+        edit.addActionListener(e -> edit());
+        del.addActionListener(e -> delete());
 
         p.add(add);
         p.add(edit);
-        p.add(delete);
+        p.add(del);
 
         return p;
     }
-
-    /* ================= LOAD ================= */
 
     private void load() {
 
         model.setRowCount(0);
 
-        for (Referral r : repository.getAll()) {
+        for (Referral r : controller.getAll()) {
             model.addRow(new Object[] {
                     r.getReferralId(),
                     r.getPatientId(),
@@ -91,195 +91,211 @@ public class ReferralPanel extends JPanel {
 
     /* ================= CRUD ================= */
 
-    private void addReferral() {
+    private void add() {
 
-        Referral r = referralForm(null);
-        if (r == null)
+        ReferralForm f = new ReferralForm(null);
+        if (!f.showDialog())
             return;
 
         try {
-            manager.processReferral(r, repository); // ✅ Singleton used
+            controller.add(f.getReferral());
             load();
         } catch (IOException ex) {
-            showError(ex.getMessage());
+            error(ex.getMessage());
         }
     }
 
-    private void editReferral() {
+    private void edit() {
 
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            showError("Select a referral first.");
-            return;
-        }
-
-        Referral existing = repository.getAll().get(row);
-        Referral updated = referralForm(existing);
-        if (updated == null)
+        int r = table.getSelectedRow();
+        if (r == -1)
             return;
 
-        Referral fixed = new Referral(
-                updated.getReferralId(),
-                updated.getPatientId(),
-                updated.getReferringClinicianId(),
-                updated.getReferredToClinicianId(),
-                updated.getReferringFacilityId(),
-                updated.getReferredToFacilityId(),
-                updated.getReferralDate(),
-                updated.getUrgencyLevel(),
-                updated.getReferralReason(),
-                updated.getClinicalSummary(),
-                updated.getRequestedInvestigations(),
-                updated.getStatus(),
-                updated.getAppointmentId(),
-                updated.getNotes(),
-                existing.getCreatedDate(),
-                LocalDate.now().toString());
+        Referral old = controller.getAll().get(r);
+        ReferralForm f = new ReferralForm(old);
+
+        if (!f.showDialog())
+            return;
 
         try {
-            repository.delete(row);
-            repository.add(fixed);
+            controller.update(r, f.getReferral());
             load();
         } catch (IOException ex) {
-            showError(ex.getMessage());
+            error(ex.getMessage());
         }
     }
 
-    private void deleteReferral() {
+    private void delete() {
 
-        int row = table.getSelectedRow();
-        if (row == -1) {
-            showError("Select a referral first.");
+        int r = table.getSelectedRow();
+        if (r == -1)
             return;
-        }
 
         if (JOptionPane.showConfirmDialog(
-                this,
-                "Delete selected referral?",
-                "Confirm",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                this, "Delete referral?",
+                "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
             try {
-                repository.delete(row);
+                controller.delete(r);
                 load();
             } catch (IOException ex) {
-                showError(ex.getMessage());
+                error(ex.getMessage());
             }
         }
     }
 
-    /* ================= FORM ================= */
+    private void error(String m) {
+        JOptionPane.showMessageDialog(this, m,
+                "Error", JOptionPane.ERROR_MESSAGE);
+    }
 
-    private Referral referralForm(Referral r) {
+    /*
+     * =====================================================
+     * INNER REFERRAL FORM (MVC-CORRECT)
+     * =====================================================
+     */
 
-        JTextField[] f = new JTextField[14];
-        JTextArea summaryArea = new JTextArea(4, 20);
+    private static class ReferralForm {
 
-        JComboBox<String> urgencyBox = new JComboBox<>(
-                new String[] { "Routine", "Non-urgent", "Urgent" });
+        private final JTextField[] f = new JTextField[14];
+        private final JComboBox<String> urgency = new JComboBox<>(new String[] { "Low", "Medium", "High", "Urgent" });
+        private final JComboBox<String> status = new JComboBox<>(
+                new String[] { "Pending", "Accepted", "Completed", "Rejected" });
 
-        JComboBox<String> statusBox = new JComboBox<>(
-                new String[] { "New", "Pending", "In Progress", "Completed" });
+        private final Referral original;
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 6, 6));
+        ReferralForm(Referral r) {
+            original = r;
+        }
 
-        String[] labels = {
-                "Referral ID", "Patient ID", "Ref Clinician ID", "To Clinician ID",
-                "From Facility", "To Facility", "Referral Date",
-                "Urgency", "Reason", "Clinical Summary",
-                "Investigations", "Status", "Appointment ID", "Notes"
-        };
+        boolean showDialog() {
 
-        for (int i = 0; i < labels.length; i++) {
-            panel.add(new JLabel(labels[i]));
+            JPanel panel = new JPanel(new GridLayout(0, 2, 6, 6));
 
-            if (i == 7)
-                panel.add(urgencyBox);
-            else if (i == 9)
-                panel.add(new JScrollPane(summaryArea));
-            else if (i == 11)
-                panel.add(statusBox);
-            else {
+            String[] labels = {
+                    "Referral ID", "Patient ID",
+                    "Referring Clinician", "Referred Clinician",
+                    "Referring Facility", "Referred Facility",
+                    "Referral Date (YYYY-M-D)",
+                    "Urgency",
+                    "Reason",
+                    "Clinical Summary",
+                    "Investigations",
+                    "Status",
+                    "Appointment ID",
+                    "Notes"
+            };
+
+            for (int i = 0; i < f.length; i++) {
                 f[i] = new JTextField();
-                panel.add(f[i]);
+                panel.add(new JLabel(labels[i]));
+
+                if (i == 7)
+                    panel.add(urgency);
+                else if (i == 11)
+                    panel.add(status);
+                else
+                    panel.add(f[i]);
+            }
+
+            if (original != null) {
+                f[0].setText(original.getReferralId());
+                f[0].setEditable(false);
+                f[1].setText(original.getPatientId());
+                f[2].setText(original.getReferringClinicianId());
+                f[3].setText(original.getReferredToClinicianId());
+                f[4].setText(original.getReferringFacilityId());
+                f[5].setText(original.getReferredToFacilityId());
+                f[6].setText(original.getReferralDate());
+                urgency.setSelectedItem(original.getUrgencyLevel());
+                f[8].setText(original.getReferralReason());
+                f[9].setText(original.getClinicalSummary());
+                f[10].setText(original.getRequestedInvestigations());
+                status.setSelectedItem(original.getStatus());
+                f[12].setText(original.getAppointmentId());
+                f[13].setText(original.getNotes());
+            }
+
+            JScrollPane scroll = new JScrollPane(panel);
+            scroll.setPreferredSize(new Dimension(520, 480));
+
+            while (true) {
+
+                int ok = JOptionPane.showConfirmDialog(
+                        null, scroll,
+                        original == null ? "Add Referral" : "Edit Referral",
+                        JOptionPane.OK_CANCEL_OPTION);
+
+                if (ok != JOptionPane.OK_OPTION)
+                    return false;
+
+                if (validate())
+                    return true;
             }
         }
 
-        if (r != null) {
-            f[0].setText(r.getReferralId());
-            f[0].setEditable(false);
-            f[1].setText(r.getPatientId());
-            f[2].setText(r.getReferringClinicianId());
-            f[3].setText(r.getReferredToClinicianId());
-            f[4].setText(r.getReferringFacilityId());
-            f[5].setText(r.getReferredToFacilityId());
-            f[6].setText(r.getReferralDate());
-            urgencyBox.setSelectedItem(r.getUrgencyLevel());
-            f[8].setText(r.getReferralReason());
-            summaryArea.setText(r.getClinicalSummary());
-            f[10].setText(r.getRequestedInvestigations());
-            statusBox.setSelectedItem(r.getStatus());
-            f[12].setText(r.getAppointmentId());
-            f[13].setText(r.getNotes());
-        } else {
-            f[6].setText(LocalDate.now().toString());
-        }
+        /* ================= VALIDATION ================= */
 
-        JScrollPane scroll = new JScrollPane(panel);
-        scroll.setPreferredSize(new Dimension(520, 420));
-
-        while (true) {
-
-            int ok = JOptionPane.showConfirmDialog(
-                    this,
-                    scroll,
-                    r == null ? "Add Referral" : "Edit Referral",
-                    JOptionPane.OK_CANCEL_OPTION);
-
-            if (ok != JOptionPane.OK_OPTION)
-                return null;
+        private boolean validate() {
 
             if (!f[0].getText().matches("R\\d{3}")) {
-                showError("Referral ID must be like R001.");
-                continue;
+                error("Referral ID must be R001 format.");
+                return false;
             }
 
             if (!f[1].getText().matches("P\\d{3}")) {
-                showError("Patient ID must be like P001.");
-                continue;
+                error("Patient ID must be P001.");
+                return false;
             }
 
-            if (!f[2].getText().matches("C\\d{3}")) {
-                showError("Clinician ID must be like C001.");
-                continue;
+            if (parseDate(f[6].getText()) == null) {
+                error("Invalid referral date.");
+                return false;
             }
 
-            if (!f[4].getText().matches("[SH]\\d{3}")) {
-                showError("Facility ID must be S001 or H001.");
-                continue;
+            if (f[8].getText().trim().length() < 3) {
+                error("Referral reason required.");
+                return false;
             }
+
+            return true;
+        }
+
+        private LocalDate parseDate(String s) {
+            try {
+                return LocalDate.parse(s.trim(),
+                        DateTimeFormatter.ofPattern("yyyy-M-d"));
+            } catch (DateTimeParseException e) {
+                return null;
+            }
+        }
+
+        private void error(String m) {
+            JOptionPane.showMessageDialog(null, m,
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        Referral getReferral() {
+
+            String today = LocalDate.now().toString();
 
             return new Referral(
-                    f[0].getText(),
-                    f[1].getText(),
-                    f[2].getText(),
-                    f[3].getText(),
-                    f[4].getText(),
-                    f[5].getText(),
-                    f[6].getText(),
-                    urgencyBox.getSelectedItem().toString(),
-                    f[8].getText(),
-                    summaryArea.getText(),
-                    f[10].getText(),
-                    statusBox.getSelectedItem().toString(),
-                    f[12].getText(),
-                    f[13].getText(),
-                    LocalDate.now().toString(),
-                    LocalDate.now().toString());
+                    f[0].getText().trim(),
+                    f[1].getText().trim(),
+                    f[2].getText().trim(),
+                    f[3].getText().trim(),
+                    f[4].getText().trim(),
+                    f[5].getText().trim(),
+                    f[6].getText().trim(),
+                    urgency.getSelectedItem().toString(),
+                    f[8].getText().trim(),
+                    f[9].getText().trim(),
+                    f[10].getText().trim(),
+                    status.getSelectedItem().toString(),
+                    f[12].getText().trim(),
+                    f[13].getText().trim(),
+                    original == null ? today : original.getCreatedDate(),
+                    today);
         }
-    }
-
-    private void showError(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 }

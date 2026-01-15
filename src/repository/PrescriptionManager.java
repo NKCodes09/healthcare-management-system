@@ -3,9 +3,6 @@ package repository;
 import model.Prescription;
 import java.io.IOException;
 
-/**
- * Singleton manager for prescription processing
- */
 public class PrescriptionManager {
 
     private static PrescriptionManager instance;
@@ -20,14 +17,11 @@ public class PrescriptionManager {
         return instance;
     }
 
-    /**
-     * Saves prescription to CSV and generates TXT output
-     */
-    public void processPrescription(
-            Prescription prescription,
-            PrescriptionRepository repository) throws IOException {
+    public void createPrescription(
+            Prescription p,
+            PrescriptionRepository repo) throws IOException {
 
-        repository.addPrescription(prescription); // CSV
-        PrescriptionWriter.write(prescription); // TXT
+        repo.add(p); // CSV
+        PrescriptionWriter.write(p); // TXT
     }
 }

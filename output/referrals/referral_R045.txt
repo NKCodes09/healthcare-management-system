@@ -1,0 +1,12 @@
+REFERRAL
+==============================
+Referral ID: R045
+Patient ID: P099
+Urgency: Medium
+Status: Accepted
+
+Reason:
+sdf
+
+Clinical Summary:
+sdf

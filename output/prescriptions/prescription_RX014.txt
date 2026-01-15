@@ -1,0 +1,21 @@
+PRESCRIPTION RECORD
+---------------------------
+Prescription ID: RX014
+Patient ID: P004
+Clinician ID: C010
+Appointment ID: A022
+Prescription Date: 2022-09-09
+
+Medication: xdv
+Dosage: 20mg
+Frequency: 88
+Duration: 88
+Quantity: 88
+
+Instructions:
+dcv
+
+Pharmacy: sdvcs
+Status: Issued
+Issued: 2022-09-09
+Collected: 2022-09-09

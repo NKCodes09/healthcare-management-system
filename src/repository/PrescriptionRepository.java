@@ -10,7 +10,7 @@ public class PrescriptionRepository {
 
     private final List<Prescription> prescriptions = new ArrayList<>();
     private final List<String[]> rawRows = new ArrayList<>();
-    private String originalHeader;
+    private String header;
 
     public PrescriptionRepository() {
         load();
@@ -23,11 +23,11 @@ public class PrescriptionRepository {
 
         try (BufferedReader br = new BufferedReader(new FileReader(CSV_PATH))) {
 
-            originalHeader = br.readLine();
-            if (originalHeader == null)
+            header = br.readLine();
+            if (header == null)
                 return;
 
-            String[] headers = CsvUtil.splitCsvLine(originalHeader);
+            String[] headers = CsvUtil.splitCsvLine(header);
             Map<String, Integer> index = new HashMap<>();
 
             for (int i = 0; i < headers.length; i++) {
@@ -37,27 +37,25 @@ public class PrescriptionRepository {
             String line;
             while ((line = br.readLine()) != null) {
 
-                String[] cols = CsvUtil.splitCsvLine(line);
-                rawRows.add(cols);
+                String[] c = CsvUtil.splitCsvLine(line);
+                rawRows.add(c);
 
-                Prescription p = new Prescription(
-                        CsvUtil.get(cols, index.get("prescription_id")),
-                        CsvUtil.get(cols, index.get("patient_id")),
-                        CsvUtil.get(cols, index.get("clinician_id")),
-                        CsvUtil.get(cols, index.get("appointment_id")),
-                        CsvUtil.get(cols, index.get("prescription_date")),
-                        CsvUtil.get(cols, index.get("medication_name")),
-                        CsvUtil.get(cols, index.get("dosage")),
-                        CsvUtil.get(cols, index.get("frequency")),
-                        CsvUtil.get(cols, index.get("duration_days")),
-                        CsvUtil.get(cols, index.get("quantity")),
-                        CsvUtil.get(cols, index.get("instructions")),
-                        CsvUtil.get(cols, index.get("pharmacy_name")),
-                        CsvUtil.get(cols, index.get("status")),
-                        CsvUtil.get(cols, index.get("issue_date")),
-                        CsvUtil.get(cols, index.get("collection_date")));
-
-                prescriptions.add(p);
+                prescriptions.add(new Prescription(
+                        CsvUtil.get(c, index.get("prescription_id")),
+                        CsvUtil.get(c, index.get("patient_id")),
+                        CsvUtil.get(c, index.get("clinician_id")),
+                        CsvUtil.get(c, index.get("appointment_id")),
+                        CsvUtil.get(c, index.get("prescription_date")),
+                        CsvUtil.get(c, index.get("medication_name")),
+                        CsvUtil.get(c, index.get("dosage")),
+                        CsvUtil.get(c, index.get("frequency")),
+                        CsvUtil.get(c, index.get("duration_days")),
+                        CsvUtil.get(c, index.get("quantity")),
+                        CsvUtil.get(c, index.get("instructions")),
+                        CsvUtil.get(c, index.get("pharmacy_name")),
+                        CsvUtil.get(c, index.get("status")),
+                        CsvUtil.get(c, index.get("issue_date")),
+                        CsvUtil.get(c, index.get("collection_date"))));
             }
 
         } catch (IOException e) {
@@ -69,37 +67,54 @@ public class PrescriptionRepository {
         return prescriptions;
     }
 
-    public void addPrescription(Prescription p) throws IOException {
+    public void add(Prescription p) throws IOException {
 
         prescriptions.add(p);
 
-        String[] row = new String[originalHeader.split(",").length];
-        row[0] = p.getPrescriptionId();
-        row[1] = p.getPatientId();
-        row[2] = p.getClinicianId();
-        row[3] = p.getAppointmentId();
-        row[4] = p.getPrescriptionDate();
-        row[5] = p.getMedicationName();
-        row[6] = p.getDosage();
-        row[7] = p.getFrequency();
-        row[8] = p.getDurationDays();
-        row[9] = p.getQuantity();
-        row[10] = p.getInstructions();
-        row[11] = p.getPharmacyName();
-        row[12] = p.getStatus();
-        row[13] = p.getIssueDate();
-        row[14] = p.getCollectionDate();
+        rawRows.add(new String[] {
+                p.getPrescriptionId(),
+                p.getPatientId(),
+                p.getClinicianId(),
+                p.getAppointmentId(),
+                p.getPrescriptionDate(),
+                p.getMedicationName(),
+                p.getDosage(),
+                p.getFrequency(),
+                p.getDurationDays(),
+                p.getQuantity(),
+                p.getInstructions(),
+                p.getPharmacyName(),
+                p.getStatus(),
+                p.getIssueDate(),
+                p.getCollectionDate()
+        });
 
-        rawRows.add(row);
         writeAll();
     }
 
-    public void updateAll() throws IOException {
+    public void update(int index, Prescription p) throws IOException {
+        prescriptions.set(index, p);
+        rawRows.set(index, new String[] {
+                p.getPrescriptionId(),
+                p.getPatientId(),
+                p.getClinicianId(),
+                p.getAppointmentId(),
+                p.getPrescriptionDate(),
+                p.getMedicationName(),
+                p.getDosage(),
+                p.getFrequency(),
+                p.getDurationDays(),
+                p.getQuantity(),
+                p.getInstructions(),
+                p.getPharmacyName(),
+                p.getStatus(),
+                p.getIssueDate(),
+                p.getCollectionDate()
+        });
         writeAll();
     }
 
-    public void deletePrescription(int index) throws IOException {
-
+    public void delete(int index) throws IOException {
         prescriptions.remove(index);
         rawRows.remove(index);
         writeAll();
@@ -108,34 +123,14 @@ public class PrescriptionRepository {
     private void writeAll() throws IOException {
 
         try (PrintWriter pw = new PrintWriter(new FileWriter(CSV_PATH))) {
+            pw.println(header);
 
-            pw.println(originalHeader);
-
-            for (String[] row : rawRows) {
-
-                String[] safeRow = new String[row.length];
-                for (int i = 0; i < row.length; i++) {
-                    safeRow[i] = csvSafe(row[i]);
+            for (String[] r : rawRows) {
+                for (int i = 0; i < r.length; i++) {
+                    r[i] = CsvUtil.escape(r[i]);
                 }
-
-                pw.println(String.join(",", safeRow));
+                pw.println(String.join(",", r));
             }
         }
-    }
-
-    /**
-     * Ensures CSV values containing commas or quotes are written safely.
-     */
-    private String csvSafe(String value) {
-
-        if (value == null)
-            return "";
-
-        if (value.contains(",") || value.contains("\"")) {
-            value = value.replace("\"", "\"\"");
-            return "\"" + value + "\"";
-        }
-
-        return value;
     }
 }
