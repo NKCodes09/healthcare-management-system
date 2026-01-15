@@ -22,6 +22,7 @@ public class PrescriptionManager {
             Prescription p,
             PrescriptionRepository repo) throws IOException {
 
+                // Add prescription to repository and write to files
         repo.add(p); // CSV
         PrescriptionWriter.write(p); // TXT
     }
